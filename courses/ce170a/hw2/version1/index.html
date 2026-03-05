@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I-35W Bridge SHM Simulator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 900px;
+            text-align: center;
+            width: 100%;
+        }
+        /* The Bridge Workspace */
+        .bridge-container {
+            position: relative;
+            width: min(800px, 100%);
+            height: 300px;
+            background-color: #e0e0e0;
+            /* TODO: Replace this background with a real 2D drawing of the I-35W truss */
+            background-image: linear-gradient(to right, transparent 49%, #999 49%, #999 51%, transparent 51%), 
+                              linear-gradient(to bottom, transparent 49%, #999 49%, #999 51%, transparent 51%);
+            background-size: 100px 100px;
+            border: 2px solid #ccc;
+            margin: 20px auto;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        /* The specific U10 Gusset Plate Drop Zone (Hardcoded location) */
+        .target-node {
+            position: absolute;
+            top: 100px;   /* Adjust based on your bridge image */
+            left: 350px;  /* Adjust based on your bridge image */
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255, 0, 0, 0.2); /* Slightly visible for testing, make transparent later */
+            border-radius: 50%;
+            border: 2px dashed #d9534f;
+            z-index: 10;
+            display: grid;
+            place-items: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: #8a3b35;
+        }
+        /* Draggable Sensors */
+        .sensor-tray {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .sensor {
+            padding: 10px 15px;
+            background-color: #0275d8;
+            color: white;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: grab;
+            user-select: none;
+        }
+        .sensor:active {
+            cursor: grabbing;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 18px;
+            font-size: 1em;
+            cursor: pointer;
+            border-radius: 6px;
+            border: 1px solid #b7b7b7;
+            background: #ffffff;
+        }
+        /* Results Panel */
+        #results {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            display: none; /* Hidden until simulation is run */
+        }
+        .success { background-color: #dff0d8; color: #3c763d; border: 1px solid #d6e9c6; }
+        .failure { background-color: #f2dede; color: #a94442; border: 1px solid #ebccd1; }
+        .warning { background-color: #fcf8e3; color: #8a6d3b; border: 1px solid #faebcc; }
+
+        .panel {
+            margin-top: 16px;
+            background: #fff;
+            border-radius: 8px;
+            padding: 14px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+            text-align: left;
+        }
+        .panel h3 {
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+        #staged-output li {
+            margin-bottom: 6px;
+        }
+        #attempt-log {
+            margin: 0;
+            padding-left: 20px;
+        }
+        #attempt-log li {
+            margin-bottom: 6px;
+        }
+
+        @media (max-width: 820px) {
+            .bridge-container {
+                height: 240px;
+            }
+            .target-node {
+                top: 80px;
+                left: 43%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>I-35W Structural Health Monitoring</h2>
+    <p>Drag the appropriate sensor to the node you believe requires monitoring based on the NTSB report.</p>
+
+    <div class="sensor-tray" id="sensor-tray">
+        <div class="sensor" draggable="true" id="strain-gauge">Strain Gauge</div>
+        <div class="sensor" draggable="true" id="accelerometer">Accelerometer</div>
+        <div class="sensor" draggable="true" id="tiltmeter">Tiltmeter</div>
+    </div>
+
+    <div class="bridge-container" id="bridge-container">
+        <div class="target-node" id="u10-node">U10</div>
+    </div>
+
+    <div class="controls">
+        <button id="run-btn">Run Simulation</button>
+        <button id="reset-btn" type="button">Reset Layout</button>
+    </div>
+
+    <div id="results"></div>
+
+    <div class="panel" id="simulation-panel">
+        <h3>Load Progression</h3>
+        <ul id="staged-output">
+            <li>Run the simulation to view staged bridge response.</li>
+        </ul>
+    </div>
+
+    <div class="panel" id="log-panel">
+        <h3>Attempt Log</h3>
+        <ol id="attempt-log">
+            <li>No attempts yet.</li>
+        </ol>
+    </div>
+</div>
+
+<script>
+    const bridge = document.getElementById("bridge-container");
+    const tray = document.getElementById("sensor-tray");
+    const u10Node = document.getElementById("u10-node");
+    const runBtn = document.getElementById("run-btn");
+    const resetBtn = document.getElementById("reset-btn");
+    const resultsDiv = document.getElementById("results");
+    const stagedOutput = document.getElementById("staged-output");
+    const attemptLog = document.getElementById("attempt-log");
+
+    const attempts = [];
+
+    document.querySelectorAll(".sensor").forEach((sensor) => {
+        sensor.addEventListener("dragstart", onDragStart);
+        sensor.dataset.location = "tray";
+    });
+
+    bridge.addEventListener("dragover", allowDrop);
+    bridge.addEventListener("drop", dropAnywhere);
+    u10Node.addEventListener("dragover", allowDrop);
+    u10Node.addEventListener("drop", dropOnTarget);
+    runBtn.addEventListener("click", runSimulation);
+    resetBtn.addEventListener("click", resetLayout);
+
+    function allowDrop(ev) {
+        ev.preventDefault();
+    }
+
+    function onDragStart(ev) {
+        ev.dataTransfer.setData("text/plain", ev.target.id);
+    }
+
+    function placeOnU10(sensorEl) {
+        sensorEl.dataset.location = "u10";
+        sensorEl.style.position = "static";
+        sensorEl.style.margin = "0";
+        sensorEl.style.padding = "5px";
+        sensorEl.style.fontSize = "10px";
+        u10Node.appendChild(sensorEl);
+    }
+
+    function placeOnBridge(sensorEl, ev) {
+        const rect = bridge.getBoundingClientRect();
+        const x = ev.clientX - rect.left - 50;
+        const y = ev.clientY - rect.top - 20;
+        sensorEl.dataset.location = "bridge";
+        sensorEl.style.position = "absolute";
+        sensorEl.style.left = `${Math.max(0, x)}px`;
+        sensorEl.style.top = `${Math.max(0, y)}px`;
+        sensorEl.style.padding = "10px 15px";
+        sensorEl.style.fontSize = "14px";
+        bridge.appendChild(sensorEl);
+    }
+
+    function dropOnTarget(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        const sensorId = ev.dataTransfer.getData("text/plain");
+        const sensorEl = document.getElementById(sensorId);
+        placeOnU10(sensorEl);
+    }
+
+    function dropAnywhere(ev) {
+        ev.preventDefault();
+        if (!ev.target.classList.contains("bridge-container")) {
+            return;
+        }
+        const sensorId = ev.dataTransfer.getData("text/plain");
+        const sensorEl = document.getElementById(sensorId);
+        placeOnBridge(sensorEl, ev);
+    }
+
+    function currentU10Sensor() {
+        const sensor = u10Node.querySelector(".sensor");
+        return sensor ? sensor.id : null;
+    }
+
+    function renderStagedOutput(resultType) {
+        const u10 = currentU10Sensor();
+        let lines = [];
+
+        if (resultType === "success") {
+            lines = [
+                "Stage 1: Baseline traffic load. U10 strain = 0.32 epsilon.",
+                "Stage 2: Construction load added. U10 strain climbs to 0.86 epsilon.",
+                "Stage 3: Alert threshold exceeded at 1.05 epsilon. Evacuation recommended."
+            ];
+        } else if (resultType === "warning") {
+            lines = [
+                `Stage 1: ${u10.replace("-", " ")} at U10 remains stable under low load.`,
+                "Stage 2: Local plate yielding begins, but direct strain evidence is missing.",
+                "Stage 3: Warning arrives late; collapse risk remains high."
+            ];
+        } else {
+            lines = [
+                "Stage 1: No direct monitoring at U10.",
+                "Stage 2: Dead load increases and hidden yielding accelerates.",
+                "Stage 3: Progressive failure occurs before actionable warning."
+            ];
+        }
+
+        stagedOutput.innerHTML = lines.map((line) => `<li>${line}</li>`).join("");
+    }
+
+    function logAttempt(resultType) {
+        const u10 = currentU10Sensor() || "none";
+        attempts.push({
+            timestamp: new Date().toLocaleTimeString(),
+            u10Sensor: u10,
+            result: resultType
+        });
+
+        attemptLog.innerHTML = attempts
+            .slice()
+            .reverse()
+            .map((attempt) => {
+                return `<li>${attempt.timestamp}: U10 = <strong>${attempt.u10Sensor}</strong>, result = <strong>${attempt.result}</strong></li>`;
+            })
+            .join("");
+    }
+
+    function runSimulation() {
+        const u10 = currentU10Sensor();
+        resultsDiv.style.display = "block";
+
+        if (u10 === "strain-gauge") {
+            resultsDiv.className = "success";
+            resultsDiv.innerHTML = "<strong>Success:</strong> You selected a Strain Gauge at Node U10. As construction dead loads increased, critical yield stress in the gusset plate was detected early enough for intervention.";
+            renderStagedOutput("success");
+            logAttempt("success");
+            return;
+        }
+
+        if (u10 === "accelerometer" || u10 === "tiltmeter") {
+            resultsDiv.className = "warning";
+            resultsDiv.innerHTML = "<strong>Partial Credit:</strong> You monitored U10, but not with the best sensor. Accelerometers and tiltmeters are useful for global motion and rotation, while a strain gauge is the direct indicator of gusset plate overstress.";
+            renderStagedOutput("warning");
+            logAttempt("partial");
+            return;
+        }
+
+        resultsDiv.className = "failure";
+        resultsDiv.innerHTML = "<strong>Catastrophic Failure:</strong> U10 had no direct strain instrumentation. Local yielding in the gusset plate progressed without an actionable warning before collapse.";
+        renderStagedOutput("failure");
+        logAttempt("failure");
+    }
+
+    function resetLayout() {
+        document.querySelectorAll(".sensor").forEach((sensor) => {
+            sensor.dataset.location = "tray";
+            sensor.style.position = "static";
+            sensor.style.left = "";
+            sensor.style.top = "";
+            sensor.style.padding = "10px 15px";
+            sensor.style.fontSize = "14px";
+            tray.appendChild(sensor);
+        });
+
+        resultsDiv.style.display = "none";
+        resultsDiv.className = "";
+        resultsDiv.innerHTML = "";
+        stagedOutput.innerHTML = "<li>Run the simulation to view staged bridge response.</li>";
+    }
+</script>
+
+</body>
+</html>
