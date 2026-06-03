@@ -282,7 +282,7 @@ with col2:
         
     st.divider()
     # THE BIG BUTTON
-    run_sim = st.button("🚀 Run Moving Load Simulation", type="primary", width="stretch")
+    run_sim = st.button("🚀 Run Moving Load Simulation", type="primary", use_container_width=True)
 
 with col1:
     fig = draw_bridge(bridge_data)
@@ -345,4 +345,4 @@ if run_sim:
                 hovermode="x unified",
                 height=360,
             )
-            st.plotly_chart(res_fig, width="stretch")
+            st.plotly_chart(res_fig, use_container_width=True)
