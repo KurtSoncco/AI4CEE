@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>I-35W Bridge SHM Simulator</title>
+    <link rel="stylesheet" href="../../../styles.css" />
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -18,6 +19,25 @@
             max-width: 900px;
             text-align: center;
             width: 100%;
+        }
+        .header-link {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .header-link a {
+            padding: 10px 18px;
+            background: #174a8b;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .header-link a:hover {
+            background: #0f3255;
         }
         /* The Bridge Workspace */
         .bridge-container {
@@ -61,6 +81,7 @@
             background: #fff;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
         }
         .sensor {
             padding: 10px 15px;
@@ -87,6 +108,10 @@
             border-radius: 6px;
             border: 1px solid #b7b7b7;
             background: #ffffff;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #f0f0f0;
         }
         /* Results Panel */
         #results {
@@ -137,6 +162,11 @@
 <body>
 
 <div class="container">
+    <div class="header-link">
+        <a href="../../../../index.html">← Back to Home</a>
+        <a href="../../index.html">← Back to CE170A</a>
+    </div>
+    
     <h2>I-35W Structural Health Monitoring</h2>
     <p>Drag the appropriate sensor to the node you believe requires monitoring based on the NTSB report.</p>
 
@@ -299,7 +329,7 @@
 
         if (u10 === "strain-gauge") {
             resultsDiv.className = "success";
-            resultsDiv.innerHTML = "<strong>Success:</strong> You selected a Strain Gauge at Node U10. As construction dead loads increased, critical yield stress in the gusset plate was detected early enough for intervention.";
+            resultsDiv.innerHTML = "<strong>Success:</strong> You selected a Strain Gauge at Node U10. As construction dead loads increased, critical yield stress in the gusset plate was detected. Early monitoring could have prevented catastrophic failure.";
             renderStagedOutput("success");
             logAttempt("success");
             return;
@@ -307,14 +337,14 @@
 
         if (u10 === "accelerometer" || u10 === "tiltmeter") {
             resultsDiv.className = "warning";
-            resultsDiv.innerHTML = "<strong>Partial Credit:</strong> You monitored U10, but not with the best sensor. Accelerometers and tiltmeters are useful for global motion and rotation, while a strain gauge is the direct indicator of gusset plate overstress.";
+            resultsDiv.innerHTML = "<strong>Partial Credit:</strong> You monitored U10, but not with the best sensor. Accelerometers and tiltmeters are useful for global motion and rotation, while strain gauges directly detect material-level stress concentrations.";
             renderStagedOutput("warning");
             logAttempt("partial");
             return;
         }
 
         resultsDiv.className = "failure";
-        resultsDiv.innerHTML = "<strong>Catastrophic Failure:</strong> U10 had no direct strain instrumentation. Local yielding in the gusset plate progressed without an actionable warning before collapse.";
+        resultsDiv.innerHTML = "<strong>Catastrophic Failure:</strong> U10 had no direct strain instrumentation. Local yielding in the gusset plate progressed without an actionable warning before the bridge structure failed suddenly.";
         renderStagedOutput("failure");
         logAttempt("failure");
     }
