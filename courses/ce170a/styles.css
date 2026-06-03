@@ -1,0 +1,151 @@
+/* Course-specific styles for CE170A */
+:root {
+  --bg: #f4f7fb;
+  --surface: #ffffff;
+  --text: #1b2637;
+  --muted: #54657d;
+  --primary: #174a8b;
+  --primary-soft: #e6eef9;
+  --border: #d8e1ef;
+  --shadow: 0 10px 24px rgba(18, 43, 77, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text);
+  background-color: var(--bg);
+  line-height: 1.6;
+}
+
+.container {
+  width: min(1100px, 92%);
+  margin: 0 auto;
+}
+
+.site-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 1.2rem 0;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0.3rem 0 0;
+  font-size: clamp(1.25rem, 2vw, 1.7rem);
+  line-height: 1.3;
+}
+
+.site-nav ul {
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+}
+
+.site-nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.site-nav a:hover,
+.site-nav a:focus {
+  color: var(--primary);
+}
+
+.hero {
+  padding: 4rem 0 3rem;
+  background: linear-gradient(135deg, var(--primary-soft), #f7f9fd);
+  border-bottom: 1px solid var(--border);
+}
+
+.hero h2 {
+  margin: 0 0 1rem;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.hero p {
+  margin: 0;
+  max-width: 70ch;
+  color: var(--muted);
+}
+
+.section {
+  padding: 3rem 0;
+}
+
+.section-alt {
+  background: #edf3fb;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.section h2 {
+  margin-top: 0;
+}
+
+.course-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.2rem;
+}
+
+.course-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: var(--shadow);
+}
+
+.course-card h3 {
+  margin-top: 0;
+}
+
+.course-card h4 {
+  margin-bottom: 0.4rem;
+}
+
+.course-card ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.course-card--placeholder {
+  border-style: dashed;
+}
+
+@media (max-width: 780px) {
+  .header-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .site-nav ul {
+    flex-wrap: wrap;
+  }
+}
