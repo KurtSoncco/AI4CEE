@@ -44,14 +44,17 @@ This version uses Python + Streamlit and must be deployed to a Python app host (
 2. Go to https://share.streamlit.io/ and create a new app.
 3. Set:
    - **Repository**: `KurtSoncco/AI4CEE`
-   - **Main file path**: `courses/ce170a/hw2/version2/app.py`
+   - **Main file path**: `streamlit_app.py`
 4. Streamlit Cloud will automatically install dependencies from:
-   - `courses/ce170a/hw2/version2/requirements.txt`
+   - `/requirements.txt` (which references `courses/ce170a/hw2/version2/requirements.txt`)
 5. After deployment, copy the app URL and use it as the website launch link for Version 2.
+
+### Option B: Render / Railway style deployment
+This repository now includes a root `Procfile` so platforms that detect Procfile can start the app directly.
 
 ### Local run command
 ```bash
-cd courses/ce170a/hw2/version2
+cd /tmp/workspace/KurtSoncco/AI4CEE
 pip install -r requirements.txt
-streamlit run app.py
+streamlit run streamlit_app.py
 ```
