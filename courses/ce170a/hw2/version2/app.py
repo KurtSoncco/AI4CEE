@@ -170,6 +170,60 @@ def draw_bridge(data):
     fig.update_layout(xaxis=dict(visible=False), yaxis=dict(visible=False, scaleanchor="x", scaleratio=1), margin=dict(l=20, r=20, t=20, b=20), clickmode="event+select", dragmode=False)
     return fig
 
+
+VEHICLE_STYLES = {
+    "Passenger Cars": {"width": 26, "height": 14, "color": "#4C78A8"},
+    "Public Transit Bus": {"width": 52, "height": 20, "color": "#F58518"},
+    "Heavy Traffic Jam": {"width": 42, "height": 18, "color": "#B00020"},
+}
+
+MAX_LOAD_CASE_MAGNITUDE = max(abs(lc["magnitude"]) for lc in LOAD_CASES.values())
+
+
+def draw_load_case_diagram(load_case_name):
+    """A small schematic (vehicle icons + downward load arrows scaled to
+    magnitude) so students can see at a glance how the three load cases differ."""
+    load_case = LOAD_CASES[load_case_name]
+    magnitude, n_vehicles, spacing = load_case["magnitude"], load_case["n_vehicles"], load_case["spacing"]
+    style = VEHICLE_STYLES[load_case_name]
+    body_w, body_h, color = style["width"], style["height"], style["color"]
+
+    step = spacing if spacing > 0 else body_w * 1.8
+    xs = [i * step for i in range(n_vehicles)]
+    center_offset = xs[-1] / 2 if xs else 0
+    xs = [x - center_offset for x in xs]
+
+    wheel_y0, body_y0 = 6, 12
+    arrow_len = 25 + 35 * (abs(magnitude) / MAX_LOAD_CASE_MAGNITUDE)
+    arrow_y0 = body_y0 + body_h + 6
+
+    fig = go.Figure()
+    road_margin = body_w
+    fig.add_shape(type="line", x0=min(xs) - road_margin, x1=max(xs) + road_margin, y0=0, y1=0, line=dict(color="gray", width=4))
+
+    for x in xs:
+        fig.add_shape(type="rect", x0=x - body_w / 2, x1=x + body_w / 2, y0=body_y0, y1=body_y0 + body_h,
+                      line=dict(color="black", width=1), fillcolor=color)
+        for wx in (x - body_w * 0.3, x + body_w * 0.3):
+            fig.add_shape(type="circle", x0=wx - 4, x1=wx + 4, y0=wheel_y0 - 4, y1=wheel_y0 + 4,
+                          line=dict(width=0), fillcolor="black")
+        fig.add_annotation(
+            x=x, y=arrow_y0, ax=x, ay=arrow_y0 + arrow_len, xref="x", yref="y", axref="x", ayref="y",
+            showarrow=True, arrowhead=3, arrowsize=1.3, arrowwidth=2.5, arrowcolor="crimson",
+        )
+
+    fig.add_annotation(
+        x=0, y=arrow_y0 + arrow_len + 10, text=f"{abs(magnitude):.0f} kN per vehicle", showarrow=False,
+        font=dict(size=12, color="crimson"),
+    )
+
+    fig.update_layout(
+        xaxis=dict(visible=False, range=[min(xs) - road_margin * 1.3, max(xs) + road_margin * 1.3]),
+        yaxis=dict(visible=False, scaleanchor="x", scaleratio=1, range=[-5, arrow_y0 + arrow_len + 22]),
+        height=170, margin=dict(l=10, r=10, t=10, b=10), showlegend=False,
+    )
+    return fig
+
 # --- STRUCTURAL ANALYSIS ENGINE ---
 def detect_deck_y(nodes):
     """The roadway/load path is the chord shared by the most nodes at a common y
@@ -350,6 +404,7 @@ with col_load:
     st.subheader("Load Case")
     load_case_name = st.selectbox("🚦 Load Case:", list(LOAD_CASES.keys()))
     st.caption(LOAD_CASES[load_case_name]["description"])
+    st.plotly_chart(draw_load_case_diagram(load_case_name), use_container_width=True, config={"staticPlot": True})
 
 with col_tools:
     st.subheader("Sensor Tools")
