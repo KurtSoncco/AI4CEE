@@ -132,14 +132,14 @@ def draw_bridge(data):
         mid_texts.append(f"Beam {i}")
         mid_customdata.append(f"Beam_{i}")
 
-    fig.add_trace(go.Scatter(x=mid_xs, y=mid_ys, mode="markers+text", marker=dict(symbol="diamond", size=7, color="lightgray"), text=mid_texts, textposition="top center", customdata=mid_customdata, name="Clickable Beams"))
+    fig.add_trace(go.Scatter(x=mid_xs, y=mid_ys, mode="markers+text", marker=dict(symbol="diamond", size=7, color="lightgray"), textposition="top center", customdata=mid_customdata, name="Clickable Beams"))
 
     # Clickable Joints
     node_xs, node_ys = [n[0] for n in nodes], [n[1] for n in nodes]
     node_texts = [f"Joint {i}" for i in range(1, len(nodes) + 1)]
     node_customdata = [f"Joint_{i}" for i in range(1, len(nodes) + 1)]
 
-    fig.add_trace(go.Scatter(x=node_xs, y=node_ys, mode="markers+text", marker=dict(symbol="circle", size=7, color="blue"), text=node_texts, textposition="bottom center", customdata=node_customdata, name="Clickable Joints"))
+    fig.add_trace(go.Scatter(x=node_xs, y=node_ys, mode="markers+text", marker=dict(symbol="circle", size=7, color="blue"), textposition="bottom center", customdata=node_customdata, name="Clickable Joints"))
 
     # Overlay Placed Sensors
     if st.session_state.sensors:
