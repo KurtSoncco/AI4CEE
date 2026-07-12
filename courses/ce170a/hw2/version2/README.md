@@ -8,32 +8,30 @@ Before beginning the simulation, carefully review the following documents:
 (Optional Context: “Evaluating the effects of the I-35W bridge collapse on road-users in the twin cities metropolitan region” by Xie & Levinson).
 
 ## The Assignment:
-The failure of the I-35W bridge highlighted the critical importance of monitoring structural stresses, particularly at key joints and gusset plates. In this assignment, you will apply the lessons learned from the I-35W collapse to design and monitor your own 2D bridge structure.
+The failure of the I-35W bridge highlighted the critical importance of monitoring structural stresses, particularly at key joints and gusset plates. In this assignment, you will apply the lessons learned from the I-35W collapse to instrument and monitor a 2D truss bridge provided in the simulator.
 
-### Step 1: Draft and Design
+### Step 1: Study the Provided Bridge
 
-Hand-draft a 2D truss bridge design on engineering paper.
+Open the Bridge SHM Simulator (loaded with the default bridge below) and study its geometry: the deck, the supports, and the panel points where members meet.
 
-Clearly mark the locations where you would install structural health monitoring (SHM) sensors.
+Hint: Think about the vulnerabilities discussed in the NTSB and Gusset Plate readings. Where are the highest stresses likely to concentrate in this design? Which connections most resemble the gusset-plate details discussed in the readings?
 
-Hint: Think about the vulnerabilities discussed in the NTSB and Gusset Plate readings. Where are the highest stresses likely to concentrate in your design?
+### Step 2: Place Sensors & Run Load Simulations
 
-### Step 2: AI Load Simulation
+In the app, place Accelerometer, Strain Gauge, and Displacement sensors at the joints/members you believe are most critical.
 
-Upload a clear photo or scan of your hand-drafted bridge to [Insert Link to Your AI Tool].
+Run the simulation for each of the three built-in load cases: (1) Passenger Cars, (2) Public Transit Bus, and (3) Heavy Traffic Jam, and record the telemetry charts for each.
 
-Instruct the AI to map your sensor locations.
-
-Run the AI stress simulation for three distinct load cases: (1) Passenger Cars, (2) Public Transit Buses, and (3) Heavy Traffic Jam.
+(Optional/advanced: you may instead upload or paste your own bridge JSON to analyze a custom design.)
 
 ### Step 3: Post-Simulation Report (1-2 Pages)
-Submit your original hand-drafted schematic along with a report addressing the following:
+Submit screenshots of your sensor layout and telemetry charts along with a report addressing the following:
 
-Design & Placement: Why did you choose this specific bridge design, and why did you place the sensors where you did? Refer back to the I-35W readings to justify your choices.
+Sensor Placement: Why did you place the sensors where you did? Refer back to the I-35W readings to justify your choices.
 
-Sensor Technology: What specific types of sensors (based on the Modares/Waksmanski reading) are represented by the markers on your draft? Why are they appropriate for those locations?
+Sensor Technology: What specific types of sensors (based on the Modares/Waksmanski reading) are represented by the markers you placed? Why are they appropriate for those locations?
 
-Load Case Analysis: Review the AI simulation outputs. How did the stress distribution change across the three load cases? Did your sensors adequately capture the maximum stresses in the heavy traffic scenario?
+Load Case Analysis: How did the stress distribution change across the three load cases? Did your sensors adequately capture the maximum stresses in the heavy traffic jam scenario?
 
 ## Deployment (Version 2 Streamlit App)
 
