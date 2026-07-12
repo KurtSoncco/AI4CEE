@@ -25,6 +25,11 @@ SENSOR_TYPES = {
     "Displacement": {"color": "orange", "symbol": "diamond-cross", "size": 22},
 }
 
+# Axial stiffness (E * A) applied to every member. A strain gauge reads member
+# deformation, not force, so axial force is converted to strain via Hooke's law:
+# strain = N / EA.
+TRUSS_EA = 15000.0
+
 LOAD_CASES = {
     "Passenger Cars": {
         "magnitude": -20.0, "n_vehicles": 1, "spacing": 0.0,
@@ -279,7 +284,7 @@ def run_full_simulation(bridge_data, load_case_name, steps=40):
     progress_bar = st.progress(0)
 
     for step_idx, x in enumerate(x_positions):
-        ss = SystemElements(EA=15000, EI=5000)
+        ss = SystemElements(EA=TRUSS_EA, EI=5000)
 
         # Build structure, skipping zero-length members (anastruct can't compute
         # an orientation angle for two coincident nodes). anastruct automatically
@@ -352,7 +357,8 @@ def run_full_simulation(bridge_data, load_case_name, steps=40):
 
 def extract_sensor_series(node_series, member_series, sensors, dt=0.1):
     """Slice the cached full-structure results down to just the placed sensors,
-    applying the Accelerometer double-differentiation as a final step."""
+    converting Beam axial force to strain for Strain Gauge sensors and applying
+    the Accelerometer double-differentiation as a final step."""
     results = {}
     for target, s_type in sensors.items():
         if not isinstance(target, str) or "_" not in target:
@@ -366,6 +372,10 @@ def extract_sensor_series(node_series, member_series, sensors, dt=0.1):
             series = list(node_series.get(t_id, []))
         elif t_obj == "Beam":
             series = list(member_series.get(t_id, []))
+            if s_type == "Strain Gauge":
+                # Hooke's law: strain = axial force / EA, reported in microstrain (typical
+                # strain-gauge readout units, since raw strain is on the order of 1e-3 to 1e-6).
+                series = [1e6 * n / TRUSS_EA for n in series]
         else:
             continue
 
@@ -446,7 +456,7 @@ if run_sim:
 
         units_by_type = {
             "Displacement": "Deflection (m)",
-            "Strain Gauge": "Axial Force (kN)",
+            "Strain Gauge": "Strain (microstrain, µε)",
             "Accelerometer": "Acceleration (m/s^2)",
         }
 
