@@ -1,7 +1,6 @@
 import streamlit as st
 import plotly.graph_objects as go
 import numpy as np
-import json
 from collections import Counter
 
 # Safely import anastruct
@@ -14,7 +13,11 @@ except ImportError:
 st.set_page_config(page_title="Bridge SHM Simulator", layout="wide")
 
 st.title("🌉 Bridge SHM Simulator: Moving Load")
-st.markdown("1. Choose a load case. 2. Place sensors. 3. Run the simulation. 4. Watch the structural response!")
+st.markdown(
+    "Click a **joint** or **beam** on the diagram below to place the active sensor there. "
+    "Then, in the panel underneath, pick a sensor type and a load case, and run the simulation "
+    "to see how each sensor responds as traffic crosses the span."
+)
 
 SENSOR_TYPES = {
     "Accelerometer": {"color": "purple", "symbol": "triangle-up", "size": 20},
@@ -72,65 +75,6 @@ default_bridge = {
 }
 
 
-def validate_bridge_json(data):
-    if not isinstance(data, dict):
-        raise ValueError("JSON must be an object with 'nodes' and 'members'.")
-
-    nodes = data.get("nodes")
-    members = data.get("members")
-
-    if not isinstance(nodes, list) or len(nodes) < 2:
-        raise ValueError("'nodes' must be a list with at least 2 [x, y] points.")
-    if not isinstance(members, list) or len(members) == 0:
-        raise ValueError("'members' must be a non-empty list of [start_node, end_node].")
-
-    cleaned_nodes = []
-    for idx, node in enumerate(nodes, start=1):
-        if not isinstance(node, list) or len(node) != 2:
-            raise ValueError(f"Node {idx} must be [x, y].")
-        try:
-            x = float(node[0])
-            y = float(node[1])
-        except (TypeError, ValueError) as exc:
-            raise ValueError(f"Node {idx} has non-numeric coordinates.") from exc
-        cleaned_nodes.append([x, y])
-
-    cleaned_members = []
-    n_nodes = len(cleaned_nodes)
-    for idx, member in enumerate(members, start=1):
-        if not isinstance(member, list) or len(member) != 2:
-            raise ValueError(f"Member {idx} must be [start_node, end_node].")
-        n1, n2 = member
-        if not isinstance(n1, int) or not isinstance(n2, int):
-            raise ValueError(f"Member {idx} node references must be integers.")
-        if not (1 <= n1 <= n_nodes and 1 <= n2 <= n_nodes):
-            raise ValueError(f"Member {idx} references nodes outside 1..{n_nodes}.")
-        cleaned_members.append([n1, n2])
-
-    cleaned_supports = None
-    supports = data.get("supports")
-    if supports is not None:
-        if not isinstance(supports, list) or len(supports) == 0:
-            raise ValueError("'supports' must be a non-empty list of support definitions.")
-        cleaned_supports = []
-        for idx, sup in enumerate(supports, start=1):
-            if not isinstance(sup, dict) or "node" not in sup:
-                raise ValueError(f"Support {idx} must be an object with a 'node' field.")
-            node_id = sup["node"]
-            if not isinstance(node_id, int) or not (1 <= node_id <= n_nodes):
-                raise ValueError(f"Support {idx} references node outside 1..{n_nodes}.")
-            cleaned_supports.append({
-                "node": node_id,
-                "ux": bool(sup.get("ux", False)),
-                "uy": bool(sup.get("uy", False)),
-            })
-
-    result = {"nodes": cleaned_nodes, "members": cleaned_members}
-    if cleaned_supports is not None:
-        result["supports"] = cleaned_supports
-    return result
-
-
 def sensor_target_exists(target, bridge_data):
     if not isinstance(target, str) or "_" not in target:
         return False
@@ -151,44 +95,7 @@ def is_zero_length_member(bridge_data, member):
     return n1[0] == n2[0] and n1[1] == n2[1]
 
 
-st.subheader("Bridge Definition")
-uploaded_json = st.file_uploader("Upload bridge JSON (optional, advanced)", type=["json"])
-pasted_json = st.text_area(
-    "Or paste a custom bridge JSON (optional, advanced)",
-    height=140,
-    placeholder='{"nodes": [[0,0], [4,0]], "members": [[1,2]], "supports": [{"node":1,"ux":true,"uy":true}]}',
-)
-
 bridge_data = default_bridge
-custom_json_text = None
-if uploaded_json is not None:
-    custom_json_text = uploaded_json.getvalue().decode("utf-8")
-elif pasted_json.strip():
-    custom_json_text = pasted_json
-
-if custom_json_text:
-    try:
-        parsed_bridge = json.loads(custom_json_text)
-        bridge_data = validate_bridge_json(parsed_bridge)
-        st.success("Using custom bridge JSON.")
-    except Exception as exc:
-        st.warning(f"Invalid custom JSON ({exc}). Using default bridge.")
-else:
-    st.caption("Using the provided default bridge.")
-
-col_info, col_download = st.columns([3, 1])
-with col_info:
-    st.caption(
-        f"Bridge loaded: {len(bridge_data['nodes'])} nodes, {len(bridge_data['members'])} members"
-    )
-with col_download:
-    st.download_button(
-        "⬇️ Download Bridge JSON",
-        data=json.dumps(bridge_data, indent=2),
-        file_name="bridge.json",
-        mime="application/json",
-        use_container_width=True,
-    )
 
 if "sensors" not in st.session_state:
     st.session_state.sensors = {}
@@ -225,14 +132,14 @@ def draw_bridge(data):
         mid_texts.append(f"Beam {i}")
         mid_customdata.append(f"Beam_{i}")
 
-    fig.add_trace(go.Scatter(x=mid_xs, y=mid_ys, mode="markers+text", marker=dict(symbol="diamond", size=10, color="lightgray"), text=mid_texts, textposition="top center", customdata=mid_customdata, name="Clickable Beams"))
+    fig.add_trace(go.Scatter(x=mid_xs, y=mid_ys, mode="markers+text", marker=dict(symbol="diamond", size=7, color="lightgray"), text=mid_texts, textposition="top center", customdata=mid_customdata, name="Clickable Beams"))
 
     # Clickable Joints
     node_xs, node_ys = [n[0] for n in nodes], [n[1] for n in nodes]
     node_texts = [f"Joint {i}" for i in range(1, len(nodes) + 1)]
     node_customdata = [f"Joint_{i}" for i in range(1, len(nodes) + 1)]
 
-    fig.add_trace(go.Scatter(x=node_xs, y=node_ys, mode="markers+text", marker=dict(symbol="circle", size=14, color="blue"), text=node_texts, textposition="bottom center", customdata=node_customdata, name="Clickable Joints"))
+    fig.add_trace(go.Scatter(x=node_xs, y=node_ys, mode="markers+text", marker=dict(symbol="circle", size=7, color="blue"), text=node_texts, textposition="bottom center", customdata=node_customdata, name="Clickable Joints"))
 
     # Overlay Placed Sensors
     if st.session_state.sensors:
@@ -271,24 +178,17 @@ def detect_deck_y(nodes):
     return max(y_counts, key=lambda y: y_counts[y])
 
 
-def apply_supports(ss, bridge_data, node_id_map, deck_nodes):
-    supports = bridge_data.get("supports")
-    if supports:
-        for sup in supports:
-            anastruct_id = node_id_map.get(sup["node"])
-            if anastruct_id is None:
-                continue
-            if sup["ux"] and sup["uy"]:
-                ss.add_support_hinged(node_id=anastruct_id)
-            elif sup["uy"]:
-                ss.add_support_roll(node_id=anastruct_id, direction=2)
-            elif sup["ux"]:
-                ss.add_support_roll(node_id=anastruct_id, direction=1)
-    else:
-        # Legacy fallback for custom JSON with no "supports": hinge + roller at the ends
-        # of the deck chord, matching this app's original behavior.
-        ss.add_support_hinged(node_id=node_id_map[deck_nodes[0]])
-        ss.add_support_roll(node_id=node_id_map[deck_nodes[-1]], direction=2)
+def apply_supports(ss, bridge_data, node_id_map):
+    for sup in bridge_data["supports"]:
+        anastruct_id = node_id_map.get(sup["node"])
+        if anastruct_id is None:
+            continue
+        if sup["ux"] and sup["uy"]:
+            ss.add_support_hinged(node_id=anastruct_id)
+        elif sup["uy"]:
+            ss.add_support_roll(node_id=anastruct_id, direction=2)
+        elif sup["ux"]:
+            ss.add_support_roll(node_id=anastruct_id, direction=1)
 
 
 @st.cache_data(show_spinner="Running structural analysis...")
@@ -343,7 +243,7 @@ def run_full_simulation(bridge_data, load_case_name, steps=40):
             i + 1: ss.find_node_id(bridge_data["nodes"][i]) for i in range(n_nodes)
         }
 
-        apply_supports(ss, bridge_data, node_id_map, deck_nodes)
+        apply_supports(ss, bridge_data, node_id_map)
 
         # Distribute each vehicle's load onto its bracketing deck nodes via the lever rule,
         # accumulating contributions per node before applying (a "Heavy Traffic Jam" can
@@ -422,24 +322,46 @@ def extract_sensor_series(node_series, member_series, sensors, dt=0.1):
         results[target] = series
     return results
 
-# --- UI LAYOUT ---
-col1, col2 = st.columns([2, 1])
+# --- BRIDGE DIAGRAM (full width, at the top) ---
+# Read the active sensor before creating its widget (which is placed below the
+# diagram) so a click here can be tagged with the correct sensor type; Streamlit
+# widget state persists across reruns by key, so this is safe.
+active_sensor = st.session_state.get("active_sensor", list(SENSOR_TYPES.keys())[0])
 
-with col2:
+fig = draw_bridge(bridge_data)
+fig.update_layout(height=500)
+selection = st.plotly_chart(fig, on_select="rerun", selection_mode="points", key="bridge_chart", use_container_width=True)
+
+if selection and hasattr(selection, "selection") and selection.selection.points:
+    clicked_point = selection.selection.points[0]
+    if "customdata" in clicked_point:
+        customdata = clicked_point["customdata"]
+        target = customdata[0] if isinstance(customdata, list) else customdata
+        if isinstance(target, str) and "_" in target and st.session_state.sensors.get(target) != active_sensor:
+            st.session_state.sensors[target] = active_sensor
+            st.rerun()
+
+st.divider()
+
+# --- CONTROLS (below the diagram, since the bridge is long and wants the width) ---
+col_load, col_tools, col_placed = st.columns([1, 1, 1.4])
+
+with col_load:
     st.subheader("Load Case")
     load_case_name = st.selectbox("🚦 Load Case:", list(LOAD_CASES.keys()))
     st.caption(LOAD_CASES[load_case_name]["description"])
 
-    st.divider()
+with col_tools:
     st.subheader("Sensor Tools")
-    active_sensor = st.radio("🛠️ Active Sensor:", list(SENSOR_TYPES.keys()))
-
+    st.radio("🛠️ Active Sensor:", list(SENSOR_TYPES.keys()), key="active_sensor")
     if st.button("🗑️ Clear All Sensors"):
         st.session_state.sensors = {}
         st.rerun()
 
-    st.divider()
-    st.markdown("**Placed Sensors:**")
+with col_placed:
+    st.subheader("Placed Sensors")
+    if not st.session_state.sensors:
+        st.caption("None yet — click a joint or beam on the diagram above.")
     for location, s_type in list(st.session_state.sensors.items()):
         row_label, row_remove = st.columns([4, 1])
         row_label.write(f"- {s_type} at {location}")
@@ -447,22 +369,9 @@ with col2:
             del st.session_state.sensors[location]
             st.rerun()
 
-    st.divider()
-    # THE BIG BUTTON
-    run_sim = st.button("🚀 Run Moving Load Simulation", type="primary", use_container_width=True)
-
-with col1:
-    fig = draw_bridge(bridge_data)
-    selection = st.plotly_chart(fig, on_select="rerun", selection_mode="points", key="bridge_chart")
-
-    if selection and hasattr(selection, "selection") and selection.selection.points:
-        clicked_point = selection.selection.points[0]
-        if "customdata" in clicked_point:
-            customdata = clicked_point["customdata"]
-            target = customdata[0] if isinstance(customdata, list) else customdata
-            if isinstance(target, str) and "_" in target and st.session_state.sensors.get(target) != active_sensor:
-                st.session_state.sensors[target] = active_sensor
-                st.rerun()
+st.divider()
+# THE BIG BUTTON
+run_sim = st.button("🚀 Run Moving Load Simulation", type="primary", use_container_width=True)
 
 # --- RESULTS DASHBOARD ---
 if run_sim:
