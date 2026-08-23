@@ -299,7 +299,7 @@ function drawBridge() {
     height: 420,
   };
 
-  Plotly.react("bridge-chart", buildBridgeTraces(), layout, { responsive: true });
+  return Plotly.react("bridge-chart", buildBridgeTraces(), layout, { responsive: true });
 }
 
 function globalMaxAbsUy(sim) {
@@ -437,6 +437,11 @@ function drawDeflectedShape(stepIndex = state.deflectionStep) {
   const slider = document.getElementById("deflection-step-slider");
   if (slider) slider.value = String(stepIndex);
   updateDeflectionStepInfo(stepIndex);
+
+  const bridge = state.data.bridge;
+  const sim = state.data.simulations[state.loadCase];
+  const deckY = detectDeckY(bridge);
+  const loadX = sim.x_positions[stepIndex];
 
   Plotly.react(
     "deflection-chart",
@@ -768,17 +773,12 @@ function setupControls() {
   });
 }
 
-function init() {
-  state.data = bridgeData;
-  state.loadCase = Object.keys(state.data.load_cases)[0];
-
-  setupControls();
-  renderPlacedSensors();
-  drawBridge();
-  drawLoadCaseDiagram();
-  setupDeflectionExplorer();
-
+function bindBridgeClickHandler() {
   const bridgeEl = document.getElementById("bridge-chart");
+  if (typeof bridgeEl.on !== "function") {
+    throw new Error("Bridge chart is not ready for sensor clicks yet.");
+  }
+
   bridgeEl.on("plotly_click", (event) => {
     const target = event.points?.[0]?.customdata;
     if (!target || typeof target !== "string" || !target.includes("_")) return;
@@ -794,7 +794,9 @@ function init() {
     drawBridge();
     document.querySelector('[data-pbl="design"]').checked = true;
   });
+}
 
+function exposeLabApi() {
   window.shmLab = {
     getState: () => ({
       sensors: { ...state.sensors },
@@ -809,13 +811,29 @@ function init() {
   };
 }
 
-try {
-  init();
-} catch (err) {
+async function init() {
+  state.data = bridgeData;
+  state.loadCase = Object.keys(state.data.load_cases)[0];
+
+  setupControls();
+  renderPlacedSensors();
+  drawLoadCaseDiagram();
+  setupDeflectionExplorer();
+
+  await drawBridge();
+  bindBridgeClickHandler();
+  exposeLabApi();
+}
+
+function showStartupError(err) {
   console.error(err);
+  const detail = err?.message ? `\n\nDetails: ${err.message}` : "";
   alert(
     "Failed to start the simulator. Use the GitHub Pages link or run a local server:\n" +
       "python3 -m http.server 8765\n" +
-      "https://kurtsoncco.github.io/AI4CEE/courses/ce170a/hw2/app/",
+      "https://kurtsoncco.github.io/AI4CEE/courses/ce170a/hw2/app/" +
+      detail,
   );
 }
+
+init().catch(showStartupError);
