@@ -18,7 +18,9 @@
           <ul>
             <li><a href="../../../../index.html">AI4CEE Home</a></li>
             <li><a href="../../index.html">CE170A</a></li>
-            <li><a href="#pbl-panel">Assignment workflow</a></li>
+            <li><a href="#pbl-panel">Workflow</a></li>
+            <li><a href="#model-notes">Model notes</a></li>
+            <li><a href="#deflection-panel">Deflected shape</a></li>
           </ul>
         </nav>
       </div>
@@ -32,10 +34,40 @@
           <em>class</em> of joint failure that brought down the I-35W bridge?
         </p>
         <p class="muted">
-          Click a joint or beam to place sensors, run moving-load simulations, critique your plan,
-          and export evidence for your report. Deflection uses vertical joint motion (beams use the
-          member midpoint). Accelerometers assume a quasi-static crossing at 20 model-units/s.
+          Read the model notes, write a hypothesis, place sensors, explore the deflected shape as
+          the load moves, then simulate and export evidence for your report.
         </p>
+      </section>
+
+      <section class="panel" id="model-notes">
+        <h3>How to read this model</h3>
+        <ul class="caveats-list">
+          <li>
+            <strong>Truss bars carry axial force only.</strong> Members do not bend; they stretch
+            or compress along their length. A <em>Strain Gauge on a beam</em> reports that axial
+            response (microstrain). It is not the bar “bending.”
+          </li>
+          <li>
+            <strong>Displacement sensors measure vertical joint motion.</strong> At a
+            <em>Joint</em>, the reading is node deflection in the deck plane. At a
+            <em>Beam</em>, the reading is the average vertical motion of the two end joints
+            (midpoint proxy)—not elongation along the bar axis.
+          </li>
+          <li>
+            <strong>Accelerometers are quasi-static here.</strong> The solver is static at each
+            load position; “acceleration” comes from how fast that vertical deflection changes as
+            the vehicle crosses at 20 model-units/s. It is not a dynamic impact model.
+          </li>
+          <li>
+            <strong>Units are model units,</strong> not real meters. Compare sensors and load cases
+            relative to each other on this bridge geometry.
+          </li>
+          <li>
+            Use the <strong>deflected-shape explorer</strong> below to see the undeformed truss
+            (gray) versus the exaggerated deflected shape (blue) as the first vehicle moves along
+            the deck.
+          </li>
+        </ul>
       </section>
 
       <section class="panel" id="pbl-panel">
@@ -57,11 +89,20 @@
           <div class="pbl-step">
             <label class="step-title">
               <input type="checkbox" data-pbl="hypothesize" />
-              <span>2. Hypothesize — name your vulnerable joints</span>
+              <span>2. Hypothesize — predict critical joints before you instrument</span>
             </label>
             <div class="step-body">
-              <label for="hypothesis-input">Which joints or members are gusset-plate analogues, and why?</label>
-              <textarea id="hypothesis-input" placeholder="Example: Panel points near the deepest truss drop likely concentrate force like undersized gussets..."></textarea>
+              <label for="hypothesis-input">Engineering hypothesis (2–4 sentences)</label>
+              <p class="helper-text">
+                Address: (1) which panel points or diagonals resemble undersized gusset-plate
+                details from the I-35W readings, (2) where you expect peak <em>axial strain</em>
+                versus <em>vertical motion</em>, and (3) which load case should govern your sensor
+                layout.
+              </p>
+              <textarea
+                id="hypothesis-input"
+                placeholder="Example: Panel points where the bottom chord meets steep diagonals (e.g., near Joint 31) may concentrate axial force like gusset plates. I expect Heavy Traffic Jam to produce the largest strains on upper-deck diagonals, while vertical motion may be largest mid-span. I will prioritize strain gauges on those diagonals and one accelerometer on the deck for comparison."
+              ></textarea>
             </div>
           </div>
           <div class="pbl-step">
@@ -77,9 +118,9 @@
           <div class="pbl-step">
             <label class="step-title">
               <input type="checkbox" data-pbl="critique" />
-              <span>4. Critique — ask Gemma, then revise</span>
+              <span>4. Critique — run the design critic, then revise</span>
             </label>
-            <div class="step-body muted">Record what you kept or changed after the AI review.</div>
+            <div class="step-body muted">Record what you kept or changed after the critique.</div>
           </div>
           <div class="pbl-step">
             <label class="step-title">
@@ -99,9 +140,27 @@
       </section>
 
       <section class="panel">
-        <h3>Bridge diagram</h3>
+        <h3>Bridge diagram — place sensors</h3>
         <p class="muted">Select an active sensor type, then click a joint or beam midpoint.</p>
         <div id="bridge-chart"></div>
+      </section>
+
+      <section class="panel" id="deflection-panel">
+        <h3>Deflected shape explorer</h3>
+        <p class="muted">
+          The moving load advances the <strong>first vehicle</strong> along the deck. Drag the
+          slider to see vertical deflections at each stop. Gray = undeformed; blue = deflected
+          (exaggerated for visibility).
+        </p>
+        <div class="slider-row">
+          <label for="deflection-step-slider">First-vehicle position</label>
+          <input type="range" id="deflection-step-slider" min="0" max="39" value="0" />
+        </div>
+        <p id="deflection-step-info" class="muted"></p>
+        <div class="btn-row">
+          <button type="button" id="deflection-worst-btn">Jump to worst global deflection</button>
+        </div>
+        <div id="deflection-chart"></div>
       </section>
 
       <section class="panel grid-3">

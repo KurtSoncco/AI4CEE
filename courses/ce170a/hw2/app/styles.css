@@ -339,3 +339,33 @@ button.danger {
   border-left-color: var(--warning);
   background: #fff8e1;
 }
+
+.caveats-list {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.caveats-list li {
+  margin-bottom: 0.65rem;
+}
+
+.helper-text {
+  margin: 0.35rem 0 0.65rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.slider-row {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.75rem 0;
+}
+
+.slider-row input[type="range"] {
+  width: 100%;
+}
+
+#deflection-chart {
+  width: 100%;
+  min-height: 420px;
+}

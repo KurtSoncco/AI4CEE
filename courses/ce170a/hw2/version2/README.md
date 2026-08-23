@@ -23,6 +23,7 @@ The lab runs entirely in the browser:
 - Click-to-place sensors on a 2D truss
 - Three load cases: Passenger Cars, Public Transit Bus, Heavy Traffic Jam
 - Instant design critic (no download, no API key)
+- Deflected-shape explorer with load-position slider (undeformed vs exaggerated deflected truss)
 - Optional cloud LLM second opinion via **Copy LLM prompt** → ChatGPT or Gemini
 - Exportable JSON + markdown evidence for your report
 
