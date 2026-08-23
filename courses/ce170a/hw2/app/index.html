@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bridge SHM Lab | CE170A Homework 2</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <div>
+          <p class="eyebrow">CE170A Homework 2 · Always-on lab</p>
+          <h1>Bridge Structural Health Monitoring Simulator</h1>
+        </div>
+        <nav aria-label="Primary" class="site-nav">
+          <ul>
+            <li><a href="../../../../index.html">AI4CEE Home</a></li>
+            <li><a href="../../index.html">CE170A</a></li>
+            <li><a href="#pbl-panel">Assignment workflow</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <h2>Driving question</h2>
+        <p>
+          How would you instrument this truss so a traffic overload cannot hide the same
+          <em>class</em> of joint failure that brought down the I-35W bridge?
+        </p>
+        <p class="muted">
+          Click a joint or beam to place sensors, run moving-load simulations, critique your plan
+          with the in-browser Gemma assistant, and export evidence for your report. Physics is
+          precomputed from the same FEM engine as the instructor Streamlit build.
+        </p>
+      </section>
+
+      <section class="panel" id="pbl-panel">
+        <h3>Project workflow</h3>
+        <div class="pbl-steps">
+          <div class="pbl-step">
+            <label class="step-title">
+              <input type="checkbox" data-pbl="investigate" />
+              <span>1. Investigate — review the readings</span>
+            </label>
+            <div class="step-body">
+              <ul class="readings-list">
+                <li>NTSB I-35W collapse report (pp. 1–21)</li>
+                <li>Ballarini &amp; Okazaki — gusset plates</li>
+                <li>Modares &amp; Waksmanski — steel bridge SHM overview</li>
+              </ul>
+            </div>
+          </div>
+          <div class="pbl-step">
+            <label class="step-title">
+              <input type="checkbox" data-pbl="hypothesize" />
+              <span>2. Hypothesize — name your vulnerable joints</span>
+            </label>
+            <div class="step-body">
+              <label for="hypothesis-input">Which joints or members are gusset-plate analogues, and why?</label>
+              <textarea id="hypothesis-input" placeholder="Example: Panel points near the deepest truss drop likely concentrate force like undersized gussets..."></textarea>
+            </div>
+          </div>
+          <div class="pbl-step">
+            <label class="step-title">
+              <input type="checkbox" data-pbl="design" />
+              <span>3. Design — place up to 8 mixed sensors</span>
+            </label>
+            <div class="step-body muted">
+              Use the bridge diagram below. Budget:
+              <span id="sensor-budget" class="budget">0 / 8</span>
+            </div>
+          </div>
+          <div class="pbl-step">
+            <label class="step-title">
+              <input type="checkbox" data-pbl="critique" />
+              <span>4. Critique — ask Gemma, then revise</span>
+            </label>
+            <div class="step-body muted">Record what you kept or changed after the AI review.</div>
+          </div>
+          <div class="pbl-step">
+            <label class="step-title">
+              <input type="checkbox" data-pbl="simulate" />
+              <span>5. Simulate — run all three load cases</span>
+            </label>
+            <div class="step-body muted">Iterate at least once after seeing telemetry.</div>
+          </div>
+          <div class="pbl-step">
+            <label class="step-title">
+              <input type="checkbox" data-pbl="export" />
+              <span>6. Export — memo evidence</span>
+            </label>
+            <div class="step-body muted">Download JSON and copy the markdown summary into your report appendix.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>Bridge diagram</h3>
+        <p class="muted">Select an active sensor type, then click a joint or beam midpoint.</p>
+        <div id="bridge-chart"></div>
+      </section>
+
+      <section class="panel grid-3">
+        <div>
+          <h3>Load case</h3>
+          <label for="load-case-select">Scenario</label>
+          <select id="load-case-select"></select>
+          <p id="load-case-desc" class="muted"></p>
+          <div id="load-chart"></div>
+        </div>
+        <div>
+          <h3>Sensor tools</h3>
+          <div id="sensor-radio" class="sensor-options"></div>
+          <div class="btn-row">
+            <button type="button" id="clear-sensors-btn" class="danger">Clear all sensors</button>
+          </div>
+        </div>
+        <div>
+          <h3>Placed sensors</h3>
+          <ul id="placed-sensors" class="placed-list">
+            <li class="muted">None yet.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="btn-row">
+          <button type="button" id="run-sim-btn" class="primary">Run moving load simulation</button>
+        </div>
+        <div id="results-area" class="hidden">
+          <h3 id="results-title">Sensor telemetry</h3>
+          <div id="telemetry-charts"></div>
+        </div>
+      </section>
+
+      <section class="panel" id="critic-panel">
+        <h3>AI design critic (Gemma 3 270M, runs in your browser)</h3>
+        <p class="muted">
+          First load downloads ~300MB from Hugging Face and caches locally. No API key required.
+          The critic will not reveal an optimal sensor map — it asks Socratic questions grounded in
+          your real telemetry.
+        </p>
+        <p>
+          Model status:
+          <span id="critic-status" class="status-pill loading">Not loaded</span>
+        </p>
+        <div class="btn-row">
+          <button type="button" id="load-critic-btn">Load Gemma critic</button>
+          <button type="button" id="run-critic-btn" disabled>Run critique on current layout</button>
+        </div>
+        <div id="critic-progress" class="notice hidden"></div>
+        <div id="critic-output" class="hidden"></div>
+        <div id="critique-log-area" class="hidden">
+          <label for="critique-log">What did you keep or change after the critique?</label>
+          <textarea id="critique-log" placeholder="Example: Added a strain gauge on Beam 34 after Gemma noted I had no local axial monitoring near a panel point..."></textarea>
+        </div>
+        <div id="fallback-area" class="hidden">
+          <p class="notice warning">
+            Gemma could not load (network block, old browser, or no WebGPU/WASM). Copy this prompt
+            into ChatGPT or Gemini instead:
+          </p>
+          <textarea id="fallback-prompt" readonly></textarea>
+          <div class="btn-row">
+            <button type="button" id="copy-fallback-btn">Copy fallback prompt</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>Export report evidence</h3>
+        <div class="btn-row">
+          <button type="button" id="export-json-btn">Download JSON</button>
+          <button type="button" id="copy-markdown-btn">Copy markdown summary</button>
+        </div>
+        <pre id="export-preview" class="export-box hidden"></pre>
+      </section>
+    </main>
+
+    <script type="module" src="simulator.js"></script>
+    <script type="module" src="critic.js"></script>
+  </body>
+</html>

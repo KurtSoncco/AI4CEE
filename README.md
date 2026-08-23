@@ -2,137 +2,121 @@
 
 > Educational repository for AI-driven civil and environmental engineering applications
 
-## 🎯 Live Application
+## Live application
 
-**[Launch Homework 2 Interactive App](https://ai4cee-r8jqcpvhfg3nev263b8whp.streamlit.app/)** – I-35W Bridge Collapse SHM Simulator
+**[Launch Homework 2 Bridge SHM Lab](https://kurtsoncco.github.io/AI4CEE/courses/ce170a/hw2/app/)** — always-on GitHub Pages simulator with in-browser Gemma critic
+
+No login, no sleeping server, no API key required for students.
 
 ---
 
-## 📚 Courses
+## Courses
 
 ### CE170A: Infrastructure Sensing and Modeling
 
 Modern sensing, analysis, and modeling techniques for critical infrastructure systems.
 
 **Topics:**
+
 - Structural health monitoring (SHM)
 - Sensor networks and placement strategies
 - Infrastructure failure analysis
-- Data-driven decision making
+- Data-driven decision making with GenAI guardrails
 
 **Assignments:**
 
-1. **Homework 1:** Fukushima Nuclear Power Plant
-   - Analyze nuclear facility response to seismic events
-   - Topics: Structural analysis, sensor networks, risk assessment
-
-2. **Homework 2:** I-35W Bridge Collapse
-   - Investigate the Minneapolis bridge collapse (2007)
-   - Determine optimal sensor placement for early failure detection
-   - Interactive Streamlit simulation included
-   - **[Launch App →](https://ai4cee-r8jqcpvhfg3nev263b8whp.streamlit.app/)**
+1. **Homework 1:** Fukushima Nuclear Power Plant *(materials forthcoming)*
+2. **Homework 2:** I-35W Bridge Collapse → applied to a 2D truss SHM design project
+   - **[Launch always-on lab →](https://kurtsoncco.github.io/AI4CEE/courses/ce170a/hw2/app/)**
+   - Assignment brief: [courses/ce170a/hw2/version2/README.md](courses/ce170a/hw2/version2/README.md)
 
 ---
 
-## 🏗️ What is Homework 2?
+## Homework 2 (project-based)
 
-Students take on the role of a structural engineer tasked with retrofitting a Structural Health Monitoring (SHM) system on the I-35W Bridge *before* its tragic collapse in August 2007.
+Students investigate the I-35W collapse through readings, hypothesize vulnerable joints on a lab truss, place up to eight mixed sensors, critique their design with an in-browser **Gemma 3 270M** assistant, run moving-load simulations for three traffic scenarios, and export evidence for a short engineering memo.
 
-### The Challenge:
-- Read NTSB reports and academic papers on the collapse
-- Determine which bridge nodes/joints are most critical to monitor
-- Select appropriate sensor types (strain gauges, accelerometers, tiltmeters, etc.)
-- Run a simulation to see if your sensor placement would have detected the failure
-
-### Learning Outcomes:
-- Understand the importance of strategic sensor placement
-- Learn about different monitoring technologies and their applications
-- Analyze failure mechanisms in real infrastructure
-- Practice evidence-based decision making
+GenAI acts as a consultant; FEM telemetry is ground truth; readings set the constraints.
 
 ---
 
-## 📁 Repository Structure
+## Repository structure
 
 ```
 AI4CEE/
-├── index.html                          # Main landing page
-├── styles.css                          # Shared styling
-├── streamlit_app.py                    # Streamlit entry point
-├── requirements.txt                    # Dependencies
-├── README.md                           # This file
-├── Procfile                            # Deployment configuration
+├── index.html
+├── styles.css
+├── streamlit_app.py              # Instructor-only local entry
+├── requirements.txt
+├── README.md
 └── courses/
     └── ce170a/
-        ├── index.html                  # Course overview
+        ├── index.html
         └── hw2/
-            ├── version1/               # Static HTML simulator (archived)
-            └── version2/               # Live Streamlit app
-                ├── app.py
-                ├── requirements.txt
-                └── README.md
+            ├── app/                # Student-facing GitHub Pages lab
+            │   ├── index.html
+            │   ├── simulator.js
+            │   ├── critic.js
+            │   ├── critic-worker.js
+            │   └── bridge_results.json
+            ├── version1/           # Archived HTML quiz
+            └── version2/           # Python engine + assignment brief
+                ├── shm_engine.py
+                ├── precompute.py
+                └── app.py
 ```
 
 ---
 
-## 🚀 Deployment
+## Deployment
 
-The interactive application is deployed on **Streamlit Community Cloud**:
-- **URL:** https://ai4cee-r8jqcpvhfg3nev263b8whp.streamlit.app/
-- **Status:** Live and ready to use
-- **Access:** No login required
+### Students (GitHub Pages)
 
-### To run locally:
+1. Enable **Settings → Pages → Deploy from branch `main` / root**
+2. Share: `https://<username>.github.io/AI4CEE/courses/ce170a/hw2/app/`
+
+### Instructors (regenerate physics or run Streamlit locally)
 
 ```bash
-# Clone the repository
 git clone https://github.com/KurtSoncco/AI4CEE.git
 cd AI4CEE
 
-# Install dependencies
-pip install -r requirements.txt
+# Regenerate precomputed JSON
+cd courses/ce170a/hw2/version2
+python3 -m venv .venv && .venv/bin/pip install anastruct numpy
+.venv/bin/python precompute.py
 
-# Run the Streamlit app
+# Optional Streamlit
+cd ../../../../
+pip install -r requirements.txt
 streamlit run streamlit_app.py
 ```
 
 ---
 
-## 📖 References & Readings
+## References
 
-For Homework 2, students should review:
-
-1. **NTSB Report**: "Collapse of I-35W Highway Bridge Minneapolis, Minnesota August 1, 2007" (Pages 1–21)
-2. **"The Infamous Gusset Plates"** by Roberto Ballarini and Taichiro Okazaki
-3. **"Overview of Structural Health Monitoring for Steel Bridges"** by Modares and Waksmanski
-4. *(Optional)* "Evaluating the effects of the I-35W bridge collapse on road-users in the twin cities metropolitan region" by Xie & Levinson
+1. NTSB I-35W collapse report (pp. 1–21)
+2. Ballarini & Okazaki — gusset plates
+3. Modares & Waksmanski — steel bridge SHM
+4. *(Optional)* Xie & Levinson — twin cities road-user impacts
 
 ---
 
-## 🛠️ Technologies
+## Technologies
 
-- **Frontend:** HTML5, CSS3
-- **Backend:** Python
-- **Framework:** Streamlit
-- **Libraries:** Plotly, NumPy, Anastruct
-- **Hosting:** Streamlit Community Cloud
+- **Student lab:** HTML, CSS, Plotly.js, Transformers.js, Gemma 3 270M ONNX
+- **Physics engine:** Python, anastruct, NumPy
+- **Hosting:** GitHub Pages (students); optional local Streamlit for instructors
 
 ---
 
-## 📝 License
+## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) file for details.
-
----
-
-## 👤 Author
-
-**Kurt Soncco**  
-GitHub: [@KurtSoncco](https://github.com/KurtSoncco)  
-Repository: [AI4CEE](https://github.com/KurtSoncco/AI4CEE)
+MIT License — see [LICENSE](LICENSE).
 
 ---
 
-## 📞 Support
+## Author
 
-For questions or issues with the application, please open an issue on the [GitHub repository](https://github.com/KurtSoncco/AI4CEE/issues).
+**Kurt Soncco** — [@KurtSoncco](https://github.com/KurtSoncco)

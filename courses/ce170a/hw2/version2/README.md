@@ -1,58 +1,84 @@
-# Homework: Applying Lessons from I-35W to Custom Bridge SHM Design
+# Homework 2: Bridge SHM Design Project (PBL)
 
-## Background Readings:
-Before beginning the simulation, carefully review the following documents:
-- National Transportation Safety Board (NTSB): “Collapse of I-35W Highway Bridge Minneapolis, Minnesota August 1, 2007” (Pages 1–21).
-- “The Infamous Gusset Plates” by Roberto Ballarini and Taichiro Okazaki.
-- “Overview of Structural Health Monitoring for Steel Bridges” by Modares and Waksmanski.
-(Optional Context: “Evaluating the effects of the I-35W bridge collapse on road-users in the twin cities metropolitan region” by Xie & Levinson).
+## Driving question
 
-## The Assignment:
-The failure of the I-35W bridge highlighted the critical importance of monitoring structural stresses, particularly at key joints and gusset plates. In this assignment, you will apply the lessons learned from the I-35W collapse to instrument and monitor a 2D truss bridge provided in the simulator.
+> How would you instrument this truss so a traffic overload cannot hide the same *class* of joint failure that brought down the I-35W bridge?
 
-### Step 1: Study the Provided Bridge
+## Background readings
 
-Open the Bridge SHM Simulator (loaded with the default bridge below) and study its geometry: the deck, the supports, and the panel points where members meet.
+Before using the simulator, review:
 
-Hint: Think about the vulnerabilities discussed in the NTSB and Gusset Plate readings. Where are the highest stresses likely to concentrate in this design? Which connections most resemble the gusset-plate details discussed in the readings?
+1. NTSB — *Collapse of I-35W Highway Bridge Minneapolis, Minnesota August 1, 2007* (pp. 1–21)
+2. Roberto Ballarini & Taichiro Okazaki — *The Infamous Gusset Plates*
+3. Modares & Waksmanski — *Overview of Structural Health Monitoring for Steel Bridges*
+4. *(Optional)* Xie & Levinson — road-user impacts after the collapse
 
-### Step 2: Place Sensors & Run Load Simulations
+## Always-on student app
 
-In the app, place Accelerometer, Strain Gauge, and Displacement sensors at the joints/members you believe are most critical.
+**Launch:** [Bridge SHM Lab on GitHub Pages](https://kurtsoncco.github.io/AI4CEE/courses/ce170a/hw2/app/)
 
-Run the simulation for each of the three built-in load cases: (1) Passenger Cars, (2) Public Transit Bus, and (3) Heavy Traffic Jam, and record the telemetry charts for each.
+The lab runs entirely in the browser:
 
-(Optional/advanced: you may instead upload or paste your own bridge JSON to analyze a custom design.)
+- Precomputed moving-load FEM results (same physics as the instructor Python engine)
+- Click-to-place sensors on a 2D truss
+- Three load cases: Passenger Cars, Public Transit Bus, Heavy Traffic Jam
+- In-browser **Gemma 3 270M** design critic (no API key; ~300MB first download from Hugging Face, then cached)
+- Exportable JSON + markdown evidence for your report
 
-### Step 3: Post-Simulation Report (1-2 Pages)
-Submit screenshots of your sensor layout and telemetry charts along with a report addressing the following:
+If Gemma cannot load on your network or device, the app provides a copy-paste fallback prompt for ChatGPT or Gemini.
 
-Sensor Placement: Why did you place the sensors where you did? Refer back to the I-35W readings to justify your choices.
+## Project stages
 
-Sensor Technology: What specific types of sensors (based on the Modares/Waksmanski reading) are represented by the markers you placed? Why are they appropriate for those locations?
+Your memo should show evidence from each stage:
 
-Load Case Analysis: How did the stress distribution change across the three load cases? Did your sensors adequately capture the maximum stresses in the heavy traffic jam scenario?
+| Stage | What you do | Evidence |
+| --- | --- | --- |
+| 1. Investigate | Read the sources above | Short summary of I-35W failure mechanisms |
+| 2. Hypothesize | Name gusset-plate analogues on the lab truss | Hypothesis text in the app |
+| 3. Design | Place up to **8** mixed sensors | Sensor map screenshot |
+| 4. Critique | Run the in-browser Gemma critic; revise | Critique log: what you kept vs changed |
+| 5. Simulate | Run all three load cases; iterate once | Telemetry charts |
+| 6. Export | Download JSON / copy markdown | Appendix in your memo |
 
-## Deployment (Version 2 Streamlit App)
+## Academic integrity
 
-This version uses Python + Streamlit and must be deployed to a Python app host (not GitHub Pages).
+- GenAI is a **consultant**, not an answer key. The critic is prompted **not** to reveal an optimal sensor map.
+- Simulation telemetry is **ground truth** — your memo must interpret the numbers the app reports.
+- Cite the readings when justifying sensor type and location.
 
-### Option A: Streamlit Community Cloud (recommended)
-1. Push this repository to GitHub with the Version 2 files.
-2. Go to https://share.streamlit.io/ and create a new app.
-3. Set:
-   - **Repository**: `KurtSoncco/AI4CEE`
-   - **Main file path**: `streamlit_app.py`
-4. Streamlit Cloud will automatically install dependencies from:
-   - `/requirements.txt` (which references `courses/ce170a/hw2/version2/requirements.txt`)
-5. After deployment, copy the app URL and use it as the website launch link for Version 2.
+## Instructor notes
 
-### Option B: Render / Railway style deployment
-This repository now includes a root `Procfile` so platforms that detect Procfile can start the app directly.
+### Regenerate physics JSON
 
-### Local run command
 ```bash
-cd /tmp/workspace/KurtSoncco/AI4CEE
+cd courses/ce170a/hw2/version2
+python3 -m venv .venv
+.venv/bin/pip install anastruct numpy
+.venv/bin/python precompute.py
+```
+
+This writes `courses/ce170a/hw2/app/bridge_results.json`.
+
+### Local Streamlit (optional)
+
+```bash
 pip install -r requirements.txt
 streamlit run streamlit_app.py
 ```
+
+Streamlit is for local instructor use only. Students should use GitHub Pages.
+
+### Enable GitHub Pages
+
+1. Push this repository to GitHub.
+2. **Settings → Pages → Build and deployment → Deploy from branch**
+3. Branch: `main`, folder: `/ (root)`
+4. Student URL: `https://<username>.github.io/AI4CEE/courses/ce170a/hw2/app/`
+
+## Deliverable
+
+Submit a **2-page engineering memo** plus exported evidence (sensor layout, telemetry peaks, critique log) addressing:
+
+1. **Sensor placement** — why each location, tied to I-35W readings
+2. **Sensor technology** — why each type fits its location (Modares/Waksmanski)
+3. **Load-case analysis** — how stresses change across the three scenarios; did your layout capture the worst case?
