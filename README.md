@@ -4,7 +4,7 @@
 
 ## Live application
 
-**[Launch Homework 2 Bridge SHM Lab](https://kurtsoncco.github.io/AI4CEE/courses/ce170a/hw2/app/)** — always-on GitHub Pages simulator with in-browser Gemma critic
+**[Launch Homework 2 Bridge SHM Lab](https://kurtsoncco.github.io/AI4CEE/courses/ce170a/hw2/app/)** — always-on GitHub Pages simulator with instant design critic
 
 No login, no sleeping server, no API key required for students.
 
@@ -34,7 +34,7 @@ Modern sensing, analysis, and modeling techniques for critical infrastructure sy
 
 ## Homework 2 (project-based)
 
-Students investigate the I-35W collapse through readings, hypothesize vulnerable joints on a lab truss, place up to eight mixed sensors, critique their design with an in-browser **Gemma 3 270M** assistant, run moving-load simulations for three traffic scenarios, and export evidence for a short engineering memo.
+Students investigate the I-35W collapse through readings, hypothesize vulnerable joints on a lab truss, place up to eight mixed sensors, run moving-load simulations for three traffic scenarios, get instant critique, and export evidence for a short engineering memo.
 
 GenAI acts as a consultant; FEM telemetry is ground truth; readings set the constraints.
 

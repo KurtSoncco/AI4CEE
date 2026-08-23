@@ -69,7 +69,7 @@ function extractSensorSeries(sim, sensors) {
   return results;
 }
 
-function summarizeTelemetry(sensors, simResults, loadCaseName) {
+function summarizeTelemetry(sensors, simResults, loadCaseName, sim) {
   const units = {
     Displacement: "m",
     "Strain Gauge": "microstrain",
@@ -88,10 +88,25 @@ function summarizeTelemetry(sensors, simResults, loadCaseName) {
     });
   }
 
+  const globalStrainPeaks = [];
+  if (sim?.member_series) {
+    for (const [memberId, series] of Object.entries(sim.member_series)) {
+      const micro = series.map((n) => (1e6 * n) / TRUSS_EA);
+      const peak = micro.reduce((best, v) => (Math.abs(v) > Math.abs(best) ? v : best), 0);
+      globalStrainPeaks.push({
+        target: `Beam_${memberId}`,
+        peak,
+        unit: "microstrain",
+      });
+    }
+    globalStrainPeaks.sort((a, b) => Math.abs(b.peak) - Math.abs(a.peak));
+  }
+
   return {
     load_case: loadCaseName,
     sensor_count: Object.keys(sensors).length,
     peaks,
+    global_strain_peaks: globalStrainPeaks.slice(0, 5),
   };
 }
 
@@ -392,7 +407,7 @@ function runSimulation() {
 
   const sim = state.data.simulations[state.loadCase];
   const simResults = extractSensorSeries(sim, state.sensors);
-  state.lastTelemetry = summarizeTelemetry(state.sensors, simResults, state.loadCase);
+  state.lastTelemetry = summarizeTelemetry(state.sensors, simResults, state.loadCase, sim);
   state.allLoadTelemetry[state.loadCase] = state.lastTelemetry;
   state.simulatedLoadCases.add(state.loadCase);
 
@@ -537,6 +552,7 @@ async function init() {
       lastTelemetry: state.lastTelemetry,
       allLoadTelemetry: state.allLoadTelemetry,
       loadCase: state.loadCase,
+      sensorBudget: state.data?.sensor_budget ?? 8,
     }),
     buildMarkdownSummary,
     buildExportPayload,

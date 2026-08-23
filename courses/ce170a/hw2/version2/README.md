@@ -22,10 +22,11 @@ The lab runs entirely in the browser:
 - Precomputed moving-load FEM results (same physics as the instructor Python engine)
 - Click-to-place sensors on a 2D truss
 - Three load cases: Passenger Cars, Public Transit Bus, Heavy Traffic Jam
-- In-browser **Gemma 3 270M** design critic (no API key; ~300MB first download from Hugging Face, then cached)
+- Instant design critic (no download, no API key)
+- Optional cloud LLM second opinion via **Copy LLM prompt** → ChatGPT or Gemini
 - Exportable JSON + markdown evidence for your report
 
-If Gemma cannot load on your network or device, the app provides a copy-paste fallback prompt for ChatGPT or Gemini.
+If you want a cloud model, use **Copy LLM prompt** in the app and paste into ChatGPT or Gemini.
 
 ## Project stages
 

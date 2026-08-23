@@ -32,9 +32,8 @@
           <em>class</em> of joint failure that brought down the I-35W bridge?
         </p>
         <p class="muted">
-          Click a joint or beam to place sensors, run moving-load simulations, critique your plan
-          with the in-browser Gemma assistant, and export evidence for your report. Physics is
-          precomputed from the same FEM engine as the instructor Streamlit build.
+          Click a joint or beam to place sensors, run moving-load simulations, critique your plan,
+          and export evidence for your report.
         </p>
       </section>
 
@@ -138,35 +137,26 @@
       </section>
 
       <section class="panel" id="critic-panel">
-        <h3>AI design critic (Gemma 3 270M, runs in your browser)</h3>
+        <h3>Design critic</h3>
         <p class="muted">
-          First load downloads ~300MB from Hugging Face and caches locally. No API key required.
-          The critic will not reveal an optimal sensor map — it asks Socratic questions grounded in
-          your real telemetry.
+          Runs instantly in your browser — no download and no API key. It asks Socratic questions
+          grounded in your telemetry and the I-35W readings. For an optional second opinion, copy
+          the LLM prompt into ChatGPT or Gemini.
         </p>
         <p>
-          Model status:
-          <span id="critic-status" class="status-pill loading">Not loaded</span>
+          Status: <span id="critic-status" class="status-pill ready">Ready</span>
         </p>
         <div class="btn-row">
-          <button type="button" id="load-critic-btn">Load Gemma critic</button>
-          <button type="button" id="run-critic-btn" disabled>Run critique on current layout</button>
+          <button type="button" id="run-critic-btn" class="primary">Run critique</button>
+          <button type="button" id="copy-prompt-btn">Copy LLM prompt</button>
         </div>
-        <div id="critic-progress" class="notice hidden"></div>
         <div id="critic-output" class="hidden"></div>
         <div id="critique-log-area" class="hidden">
           <label for="critique-log">What did you keep or change after the critique?</label>
-          <textarea id="critique-log" placeholder="Example: Added a strain gauge on Beam 34 after Gemma noted I had no local axial monitoring near a panel point..."></textarea>
-        </div>
-        <div id="fallback-area" class="hidden">
-          <p class="notice warning">
-            Gemma could not load (network block, old browser, or no WebGPU/WASM). Copy this prompt
-            into ChatGPT or Gemini instead:
-          </p>
-          <textarea id="fallback-prompt" readonly></textarea>
-          <div class="btn-row">
-            <button type="button" id="copy-fallback-btn">Copy fallback prompt</button>
-          </div>
+          <textarea
+            id="critique-log"
+            placeholder="Example: Added a strain gauge on Beam 34 after the critique noted I had no local axial monitoring near a panel point..."
+          ></textarea>
         </div>
       </section>
 
