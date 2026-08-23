@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from shm_engine import DEFAULT_BRIDGE, LOAD_CASES, SIMULATION_STEPS, TRUSS_EA, run_full_simulation
+from shm_engine import DEFAULT_BRIDGE, LOAD_CASES, SIMULATION_STEPS, TRUSS_EA, VEHICLE_CROSSING_SPEED, run_full_simulation
 
 OUTPUT_PATH = Path(__file__).resolve().parent.parent / "app" / "bridge_results.json"
 
@@ -17,6 +17,7 @@ def main() -> None:
         "truss_ea": TRUSS_EA,
         "steps": SIMULATION_STEPS,
         "sensor_budget": 8,
+        "vehicle_speed": VEHICLE_CROSSING_SPEED,
         "bridge": DEFAULT_BRIDGE,
         "load_cases": LOAD_CASES,
         "simulations": {},

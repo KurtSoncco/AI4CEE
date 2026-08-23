@@ -1,5 +1,5 @@
 const TRUSS_EA = 15000;
-const DT = 0.1;
+const DEFAULT_VEHICLE_SPEED = 20;
 
 const SENSOR_TYPES = {
   Accelerometer: { color: "purple", symbol: "triangle-up", size: 12 },
@@ -29,41 +29,90 @@ function isZeroLengthMember(bridge, member) {
   return n1[0] === n2[0] && n1[1] === n2[1];
 }
 
-function numericGradient(arr, dt) {
-  const out = new Array(arr.length).fill(0);
-  for (let i = 0; i < arr.length; i += 1) {
-    if (i === 0) out[i] = (arr[1] - arr[0]) / dt;
-    else if (i === arr.length - 1) out[i] = (arr[i] - arr[i - 1]) / dt;
-    else out[i] = (arr[i + 1] - arr[i - 1]) / (2 * dt);
+function membersAtJoint(bridge, jointId) {
+  return bridge.members
+    .map((member, idx) => ({ member, id: idx + 1 }))
+    .filter(({ member }) => member.includes(jointId))
+    .map(({ id }) => id);
+}
+
+function beamMidpointUySeries(memberId, nodeSeries, bridge) {
+  const member = bridge.members[memberId - 1];
+  const s1 = nodeSeries[String(member[0])] || [];
+  const s2 = nodeSeries[String(member[1])] || [];
+  if (!s1.length || !s2.length) return [];
+  return s1.map((value, idx) => (value + s2[idx]) / 2);
+}
+
+function jointStrainSeries(jointId, memberSeries, bridge) {
+  const memberIds = membersAtJoint(bridge, jointId);
+  if (!memberIds.length) return [];
+  const length = memberSeries[String(memberIds[0])]?.length || 0;
+  const out = [];
+  for (let step = 0; step < length; step += 1) {
+    const strains = memberIds
+      .map((mid) => (1e6 * memberSeries[String(mid)][step]) / TRUSS_EA)
+      .filter((v) => Number.isFinite(v));
+    out.push(strains.length ? strains.reduce((best, v) => (Math.abs(v) > Math.abs(best) ? v : best), 0) : 0);
   }
   return out;
 }
 
-function extractSensorSeries(sim, sensors) {
+function resolveDisplacementSeries(targetObj, targetId, nodeSeries, bridge) {
+  if (targetObj === "Joint") {
+    return [...(nodeSeries[String(targetId)] || [])];
+  }
+  if (targetObj === "Beam") {
+    return beamMidpointUySeries(Number(targetId), nodeSeries, bridge);
+  }
+  return [];
+}
+
+function verticalAccelerationSeries(displacementSeries, xPositions, vehicleSpeed) {
+  if (displacementSeries.length < 2) return [...displacementSeries];
+  const time = xPositions.map((x) => (x - xPositions[0]) / vehicleSpeed);
+  const velocity = numericGradient(displacementSeries, time);
+  return numericGradient(velocity, time);
+}
+
+function numericGradient(arr, spacing) {
+  const out = new Array(arr.length).fill(0);
+  for (let i = 0; i < arr.length; i += 1) {
+    if (i === 0) {
+      out[i] = (arr[1] - arr[0]) / (spacing[1] - spacing[0]);
+    } else if (i === arr.length - 1) {
+      out[i] = (arr[i] - arr[i - 1]) / (spacing[i] - spacing[i - 1]);
+    } else {
+      out[i] = (arr[i + 1] - arr[i - 1]) / (spacing[i + 1] - spacing[i - 1]);
+    }
+  }
+  return out;
+}
+
+function extractSensorSeries(sim, sensors, bridge, xPositions, vehicleSpeed) {
   const { node_series: nodeSeries, member_series: memberSeries } = sim;
   const results = {};
 
   for (const [target, sType] of Object.entries(sensors)) {
     const [tObj, tId] = target.split("_");
-    let series;
+    let series = [];
 
-    if (tObj === "Joint") {
-      series = [...(nodeSeries[tId] || [])];
-    } else if (tObj === "Beam") {
-      series = [...(memberSeries[tId] || [])];
-      if (sType === "Strain Gauge") {
-        series = series.map((n) => (1e6 * n) / TRUSS_EA);
+    if (sType === "Strain Gauge") {
+      if (tObj === "Beam") {
+        series = (memberSeries[tId] || []).map((n) => (1e6 * n) / TRUSS_EA);
+      } else if (tObj === "Joint") {
+        series = jointStrainSeries(Number(tId), memberSeries, bridge);
       }
-    } else {
-      continue;
+    } else if (sType === "Displacement" || sType === "Accelerometer") {
+      series = resolveDisplacementSeries(tObj, Number(tId), nodeSeries, bridge);
+      if (sType === "Accelerometer" && series.length) {
+        series = verticalAccelerationSeries(series, xPositions, vehicleSpeed);
+      }
     }
 
-    if (sType === "Accelerometer" && series.length) {
-      const vel = numericGradient(series, DT);
-      series = numericGradient(vel, DT);
+    if (series.length) {
+      results[target] = series;
     }
-
-    results[target] = series;
   }
 
   return results;
@@ -71,9 +120,9 @@ function extractSensorSeries(sim, sensors) {
 
 function summarizeTelemetry(sensors, simResults, loadCaseName, sim) {
   const units = {
-    Displacement: "m",
+    Displacement: "model units",
     "Strain Gauge": "microstrain",
-    Accelerometer: "m/s^2",
+    Accelerometer: "model units/s^2",
   };
   const peaks = [];
 
@@ -353,9 +402,9 @@ function renderTelemetryCharts(simResults) {
   const sim = state.data.simulations[state.loadCase];
   const x = sim.x_positions;
   const units = {
-    Displacement: "Deflection (m)",
+    Displacement: "Vertical deflection (model units)",
     "Strain Gauge": "Strain (microstrain)",
-    Accelerometer: "Acceleration (m/s^2)",
+    Accelerometer: "Vertical acceleration (model units/s², quasi-static)",
   };
 
   const container = document.getElementById("telemetry-charts");
@@ -388,7 +437,7 @@ function renderTelemetryCharts(simResults) {
       chart,
       traces,
       {
-        xaxis: { title: "Vehicle position along bridge (x)" },
+        xaxis: { title: "Vehicle position along bridge (model x)" },
         yaxis: { title: units[sensorType] },
         hovermode: "x unified",
         height: 320,
@@ -406,7 +455,13 @@ function runSimulation() {
   }
 
   const sim = state.data.simulations[state.loadCase];
-  const simResults = extractSensorSeries(sim, state.sensors);
+  const simResults = extractSensorSeries(
+    sim,
+    state.sensors,
+    state.data.bridge,
+    sim.x_positions,
+    state.data.vehicle_speed ?? DEFAULT_VEHICLE_SPEED,
+  );
   state.lastTelemetry = summarizeTelemetry(state.sensors, simResults, state.loadCase, sim);
   state.allLoadTelemetry[state.loadCase] = state.lastTelemetry;
   state.simulatedLoadCases.add(state.loadCase);

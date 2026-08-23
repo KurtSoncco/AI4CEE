@@ -330,13 +330,17 @@ if run_sim:
             st.stop()
 
         sim_results = extract_sensor_series(
-            node_series, member_series, st.session_state.sensors
+            node_series,
+            member_series,
+            st.session_state.sensors,
+            bridge_data,
+            load_positions,
         )
 
         units_by_type = {
-            "Displacement": "Deflection (m)",
+            "Displacement": "Vertical deflection (model units)",
             "Strain Gauge": "Strain (microstrain, uε)",
-            "Accelerometer": "Acceleration (m/s^2)",
+            "Accelerometer": "Vertical acceleration (model units/s², quasi-static)",
         }
 
         for sensor_type in SENSOR_TYPES:

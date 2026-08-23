@@ -11,6 +11,9 @@ from anastruct import SystemElements
 TRUSS_EA = 15000.0
 TRUSS_EI = 5000
 SIMULATION_STEPS = 40
+# Quasi-static moving load: map each spatial step to elapsed time via crossing speed.
+# Bridge coordinates and deflection share the same model length units.
+VEHICLE_CROSSING_SPEED = 20.0
 
 SENSOR_TYPES = {
     "Accelerometer": {"color": "purple", "symbol": "triangle-up", "size": 20},
@@ -212,11 +215,81 @@ def run_full_simulation(
     return x_positions, node_series, member_series
 
 
+def members_at_joint(bridge_data: dict[str, Any], joint_id: int) -> list[int]:
+    return [
+        idx
+        for idx, member in enumerate(bridge_data["members"], start=1)
+        if joint_id in member
+    ]
+
+
+def beam_midpoint_uy_series(
+    member_id: int,
+    node_series: dict[int, list[float]],
+    bridge_data: dict[str, Any],
+) -> list[float]:
+    member = bridge_data["members"][member_id - 1]
+    n1, n2 = member[0], member[1]
+    s1 = node_series.get(n1, [])
+    s2 = node_series.get(n2, [])
+    if not s1 or not s2:
+        return []
+    return [(a + b) / 2 for a, b in zip(s1, s2)]
+
+
+def joint_strain_series(
+    joint_id: int,
+    member_series: dict[int, list[float]],
+    bridge_data: dict[str, Any],
+) -> list[float]:
+    member_ids = members_at_joint(bridge_data, joint_id)
+    if not member_ids:
+        return []
+
+    length = len(member_series[member_ids[0]])
+    out: list[float] = []
+    for step in range(length):
+        strains = [
+            1e6 * member_series[mid][step] / TRUSS_EA
+            for mid in member_ids
+            if mid in member_series and len(member_series[mid]) > step
+        ]
+        out.append(max(strains, key=abs) if strains else 0.0)
+    return out
+
+
+def vertical_acceleration_series(
+    displacement_series: list[float],
+    x_positions: np.ndarray,
+    vehicle_speed: float = VEHICLE_CROSSING_SPEED,
+) -> list[float]:
+    if len(displacement_series) < 2:
+        return list(displacement_series)
+    time = (np.asarray(x_positions, dtype=float) - float(x_positions[0])) / vehicle_speed
+    disp = np.asarray(displacement_series, dtype=float)
+    return np.gradient(np.gradient(disp, time), time).tolist()
+
+
+def resolve_displacement_series(
+    target_obj: str,
+    target_id: int,
+    node_series: dict[int, list[float]],
+    bridge_data: dict[str, Any],
+) -> list[float]:
+    if target_obj == "Joint":
+        return list(node_series.get(target_id, []))
+    if target_obj == "Beam":
+        return beam_midpoint_uy_series(target_id, node_series, bridge_data)
+    return []
+
+
 def extract_sensor_series(
     node_series: dict[int, list[float]],
     member_series: dict[int, list[float]],
     sensors: dict[str, str],
-    dt: float = 0.1,
+    bridge_data: dict[str, Any],
+    x_positions: np.ndarray,
+    vehicle_speed: float = VEHICLE_CROSSING_SPEED,
 ) -> dict[str, list[float]]:
     results: dict[str, list[float]] = {}
     for target, s_type in sensors.items():
@@ -227,18 +300,21 @@ def extract_sensor_series(
             continue
         t_id = int(t_id_str)
 
-        if t_obj == "Joint":
-            series = list(node_series.get(t_id, []))
-        elif t_obj == "Beam":
-            series = list(member_series.get(t_id, []))
-            if s_type == "Strain Gauge":
-                series = [1e6 * n / TRUSS_EA for n in series]
+        if s_type == "Strain Gauge":
+            if t_obj == "Beam":
+                series = [
+                    1e6 * n / TRUSS_EA for n in member_series.get(t_id, [])
+                ]
+            elif t_obj == "Joint":
+                series = joint_strain_series(t_id, member_series, bridge_data)
+            else:
+                continue
+        elif s_type in {"Displacement", "Accelerometer"}:
+            series = resolve_displacement_series(t_obj, t_id, node_series, bridge_data)
+            if s_type == "Accelerometer" and series:
+                series = vertical_acceleration_series(series, x_positions, vehicle_speed)
         else:
             continue
-
-        if s_type == "Accelerometer" and series:
-            accels = np.gradient(np.gradient(np.array(series), dt), dt)
-            series = accels.tolist()
 
         results[target] = series
     return results
@@ -250,9 +326,9 @@ def summarize_telemetry(
     load_case_name: str,
 ) -> dict[str, Any]:
     units_by_type = {
-        "Displacement": "m",
+        "Displacement": "model units",
         "Strain Gauge": "microstrain",
-        "Accelerometer": "m/s^2",
+        "Accelerometer": "model units/s^2",
     }
     peaks = []
     for target, values in sim_results.items():
