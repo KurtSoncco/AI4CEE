@@ -1,3 +1,5 @@
+import bridgeData from "./bridge_data.js";
+
 const TRUSS_EA = 15000;
 const DEFAULT_VEHICLE_SPEED = 20;
 
@@ -766,9 +768,8 @@ function setupControls() {
   });
 }
 
-async function init() {
-  const response = await fetch("bridge_results.json");
-  state.data = await response.json();
+function init() {
+  state.data = bridgeData;
   state.loadCase = Object.keys(state.data.load_cases)[0];
 
   setupControls();
@@ -808,7 +809,13 @@ async function init() {
   };
 }
 
-init().catch((err) => {
+try {
+  init();
+} catch (err) {
   console.error(err);
-  alert("Failed to load bridge_results.json. Serve this folder over HTTP (GitHub Pages or local server).");
-});
+  alert(
+    "Failed to start the simulator. Use the GitHub Pages link or run a local server:\n" +
+      "python3 -m http.server 8765\n" +
+      "https://kurtsoncco.github.io/AI4CEE/courses/ce170a/hw2/app/",
+  );
+}

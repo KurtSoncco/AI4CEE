@@ -8,7 +8,8 @@ from pathlib import Path
 
 from shm_engine import DEFAULT_BRIDGE, LOAD_CASES, SIMULATION_STEPS, TRUSS_EA, VEHICLE_CROSSING_SPEED, run_full_simulation
 
-OUTPUT_PATH = Path(__file__).resolve().parent.parent / "app" / "bridge_results.json"
+OUTPUT_JSON = Path(__file__).resolve().parent.parent / "app" / "bridge_results.json"
+OUTPUT_JS = Path(__file__).resolve().parent.parent / "app" / "bridge_data.js"
 
 
 def main() -> None:
@@ -36,10 +37,13 @@ def main() -> None:
             "member_series": {str(k): v for k, v in member_series.items()},
         }
 
-    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT_PATH.write_text(json.dumps(payload, separators=(",", ":")))
-    size_kb = OUTPUT_PATH.stat().st_size / 1024
-    print(f"Wrote {OUTPUT_PATH} ({size_kb:.1f} KB)")
+    OUTPUT_JSON.parent.mkdir(parents=True, exist_ok=True)
+    encoded = json.dumps(payload, separators=(",", ":"))
+    OUTPUT_JSON.write_text(encoded)
+    OUTPUT_JS.write_text(f"export default {encoded};\n")
+    size_kb = OUTPUT_JSON.stat().st_size / 1024
+    print(f"Wrote {OUTPUT_JSON} ({size_kb:.1f} KB)")
+    print(f"Wrote {OUTPUT_JS}")
 
 
 if __name__ == "__main__":
