@@ -105,7 +105,7 @@ streamlit run streamlit_app.py
 
 ## Technologies
 
-- **Student lab:** HTML, CSS, Plotly.js, Transformers.js, Gemma 3 270M ONNX
+- **Student lab:** HTML, CSS, Plotly.js, rule-based design critic
 - **Physics engine:** Python, anastruct, NumPy
 - **Hosting:** GitHub Pages (students); optional local Streamlit for instructors
 
