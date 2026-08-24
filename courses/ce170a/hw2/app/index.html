@@ -136,6 +136,13 @@
             </label>
             <div class="step-body muted">Download JSON and copy the markdown summary into your report appendix.</div>
           </div>
+          <div class="pbl-step">
+            <label class="step-title">
+              <input type="checkbox" data-pbl="reflect" />
+              <span>7. Reflect — AI literacy feedback</span>
+            </label>
+            <div class="step-body muted">Complete before submitting your memo evidence.</div>
+          </div>
         </div>
       </section>
 
@@ -227,6 +234,77 @@
           <button type="button" id="copy-markdown-btn">Copy markdown summary</button>
         </div>
         <pre id="export-preview" class="export-box hidden"></pre>
+      </section>
+
+      <section class="panel" id="feedback-panel">
+        <h3>Final reflection — AI literacy</h3>
+        <p class="muted">
+          After completing the full assignment, share brief feedback on how you used and evaluated
+          AI tools. Your responses are included when you export memo evidence.
+        </p>
+
+        <div class="feedback-question">
+          <label>
+            After completing this lab, how confident are you using generative AI (e.g., ChatGPT,
+            Gemini) as an engineering consultant for sensor-design decisions?
+          </label>
+          <div class="rating-group" role="group" aria-label="AI consultant confidence">
+            <label><input type="radio" name="ai-consultant-confidence" value="1" /> 1</label>
+            <label><input type="radio" name="ai-consultant-confidence" value="2" /> 2</label>
+            <label><input type="radio" name="ai-consultant-confidence" value="3" /> 3</label>
+            <label><input type="radio" name="ai-consultant-confidence" value="4" /> 4</label>
+            <label><input type="radio" name="ai-consultant-confidence" value="5" /> 5</label>
+          </div>
+          <p class="rating-scale-hint muted">1 — Not at all confident · 5 — Very confident</p>
+        </div>
+
+        <div class="feedback-question">
+          <label>
+            How confident are you in your ability to critique and verify AI-generated engineering
+            advice before trusting it in a design decision?
+          </label>
+          <div class="rating-group" role="group" aria-label="Verify AI advice confidence">
+            <label><input type="radio" name="ai-verify-confidence" value="1" /> 1</label>
+            <label><input type="radio" name="ai-verify-confidence" value="2" /> 2</label>
+            <label><input type="radio" name="ai-verify-confidence" value="3" /> 3</label>
+            <label><input type="radio" name="ai-verify-confidence" value="4" /> 4</label>
+            <label><input type="radio" name="ai-verify-confidence" value="5" /> 5</label>
+          </div>
+          <p class="rating-scale-hint muted">1 — Not at all confident · 5 — Very confident</p>
+        </div>
+
+        <div class="feedback-question">
+          <label for="ai-helped-thinking">
+            Describe one way the in-browser design critic or an external LLM helped your thinking in
+            this assignment.
+          </label>
+          <textarea
+            id="ai-helped-thinking"
+            placeholder="Example: The critic asked whether I had strain coverage near a bottom-chord panel point, which made me add a gauge on Beam 34..."
+          ></textarea>
+        </div>
+
+        <div class="feedback-question">
+          <label for="ai-verified-or-disagreed">
+            Describe one case where you checked an AI suggestion against simulation data, the
+            readings, or your own engineering judgment—and what you concluded.
+          </label>
+          <textarea
+            id="ai-verified-or-disagreed"
+            placeholder="Example: The LLM suggested an accelerometer on the mid-span deck, but telemetry showed larger axial strain on a diagonal, so I kept the strain gauge..."
+          ></textarea>
+        </div>
+
+        <div class="feedback-question">
+          <label for="ai-still-to-learn">
+            What is one thing you still want to learn about using AI responsibly in structural/civil
+            engineering work?
+          </label>
+          <textarea
+            id="ai-still-to-learn"
+            placeholder="Example: How to document which parts of a design memo came from AI-assisted drafting versus my own analysis..."
+          ></textarea>
+        </div>
       </section>
     </main>
 

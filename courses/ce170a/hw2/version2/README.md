@@ -41,6 +41,7 @@ Your memo should show evidence from each stage:
 | 4. Critique | Run the in-browser Gemma critic; revise | Critique log: what you kept vs changed |
 | 5. Simulate | Run all three load cases; iterate once | Telemetry charts |
 | 6. Export | Download JSON / copy markdown | Appendix in your memo |
+| 7. Reflect | Complete AI literacy feedback (2 ratings + 3 short reflections) | `ai_literacy_feedback` block in exported JSON |
 
 ## Academic integrity
 
@@ -79,7 +80,7 @@ Streamlit is for local instructor use only. Students should use GitHub Pages.
 
 ## Deliverable
 
-Submit a **2-page engineering memo** plus exported evidence (sensor layout, telemetry peaks, critique log) addressing:
+Submit a **2-page engineering memo** plus exported evidence (sensor layout, telemetry peaks, critique log, **AI literacy feedback**) addressing:
 
 1. **Sensor placement** — why each location, tied to I-35W readings
 2. **Sensor technology** — why each type fits its location (Modares/Waksmanski)

@@ -680,6 +680,52 @@ function runSimulation() {
   );
 }
 
+function collectAiLiteracyFeedback() {
+  const consultant = document.querySelector('input[name="ai-consultant-confidence"]:checked');
+  const verify = document.querySelector('input[name="ai-verify-confidence"]:checked');
+
+  return {
+    ai_consultant_confidence: consultant ? Number(consultant.value) : null,
+    ai_verify_confidence: verify ? Number(verify.value) : null,
+    ai_helped_thinking: document.getElementById("ai-helped-thinking").value.trim(),
+    ai_verified_or_disagreed: document.getElementById("ai-verified-or-disagreed").value.trim(),
+    ai_still_to_learn: document.getElementById("ai-still-to-learn").value.trim(),
+  };
+}
+
+function updateReflectStep() {
+  const feedback = collectAiLiteracyFeedback();
+  const hasRatings =
+    feedback.ai_consultant_confidence !== null && feedback.ai_verify_confidence !== null;
+  const hasOpenResponse =
+    feedback.ai_helped_thinking.length > 0 ||
+    feedback.ai_verified_or_disagreed.length > 0 ||
+    feedback.ai_still_to_learn.length > 0;
+
+  document.querySelector('[data-pbl="reflect"]').checked = hasRatings && hasOpenResponse;
+}
+
+function setupFeedbackControls() {
+  const refreshPreviewIfVisible = () => {
+    const preview = document.getElementById("export-preview");
+    if (preview.classList.contains("hidden")) return;
+    preview.textContent = JSON.stringify(buildExportPayload(), null, 2);
+  };
+
+  const onFeedbackChange = () => {
+    updateReflectStep();
+    refreshPreviewIfVisible();
+  };
+
+  document
+    .querySelectorAll('input[name="ai-consultant-confidence"], input[name="ai-verify-confidence"]')
+    .forEach((input) => input.addEventListener("change", onFeedbackChange));
+
+  ["ai-helped-thinking", "ai-verified-or-disagreed", "ai-still-to-learn"].forEach((id) => {
+    document.getElementById(id).addEventListener("input", onFeedbackChange);
+  });
+}
+
 function buildExportPayload() {
   return {
     exported_at: new Date().toISOString(),
@@ -688,6 +734,7 @@ function buildExportPayload() {
     sensor_budget: state.data.sensor_budget,
     sensors: state.sensors,
     load_case_telemetry: state.allLoadTelemetry,
+    ai_literacy_feedback: collectAiLiteracyFeedback(),
     pbl_checks: Object.fromEntries(
       [...document.querySelectorAll("[data-pbl]")].map((el) => [el.dataset.pbl, el.checked]),
     ),
@@ -709,7 +756,11 @@ function buildMarkdownSummary() {
     })
     .join("\n");
 
-  return `# CE170A HW2 SHM evidence\n\n## Hypothesis\n${payload.hypothesis || "(not provided)"}\n\n## Sensor layout (${Object.keys(payload.sensors).length}/${payload.sensor_budget})\n${sensorLines || "(none)"}\n\n## Telemetry peaks\n${peakLines || "(run simulations first)"}\n\n## Critique log\n${payload.critique_log || "(not provided)"}\n`;
+  return `# CE170A HW2 SHM evidence\n\n## Hypothesis\n${payload.hypothesis || "(not provided)"}\n\n## Sensor layout (${Object.keys(payload.sensors).length}/${payload.sensor_budget})\n${sensorLines || "(none)"}\n\n## Telemetry peaks\n${peakLines || "(run simulations first)"}\n\n## Critique log\n${payload.critique_log || "(not provided)"}\n\n## AI literacy feedback\n- Consultant confidence: ${formatRating(payload.ai_literacy_feedback.ai_consultant_confidence)}\n- Verify-before-trust confidence: ${formatRating(payload.ai_literacy_feedback.ai_verify_confidence)}\n\n### Where AI helped\n${payload.ai_literacy_feedback.ai_helped_thinking || "(not provided)"}\n\n### Where I verified or disagreed\n${payload.ai_literacy_feedback.ai_verified_or_disagreed || "(not provided)"}\n\n### Still to learn\n${payload.ai_literacy_feedback.ai_still_to_learn || "(not provided)"}\n`;
+}
+
+function formatRating(value) {
+  return value === null ? "(not provided)" : `${value}/5`;
 }
 
 function setupControls() {
@@ -771,6 +822,8 @@ function setupControls() {
     document.querySelector('[data-pbl="export"]').checked = true;
     alert("Markdown summary copied to clipboard.");
   });
+
+  setupFeedbackControls();
 }
 
 function bindBridgeClickHandler() {
