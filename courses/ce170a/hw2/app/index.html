@@ -9,8 +9,8 @@
   </head>
   <body>
     <header class="site-header">
-      <div class="container header-inner">
-        <div>
+      <div class="page-main header-inner">
+        <div class="header-title-block">
           <p class="eyebrow">CE170A Homework 2 · Always-on lab</p>
           <h1>Bridge Structural Health Monitoring Simulator</h1>
         </div>
@@ -19,296 +19,227 @@
             <li><a href="../../../../index.html">AI4CEE Home</a></li>
             <li><a href="../../index.html">CE170A</a></li>
             <li><a href="#pbl-panel">Workflow</a></li>
-            <li><a href="#model-notes">Model notes</a></li>
-            <li><a href="#deflection-panel">Deflected shape</a></li>
+            <li><a href="#lab-panel">Simulator</a></li>
+            <li><a href="#feedback-panel">Reflect</a></li>
           </ul>
         </nav>
       </div>
     </header>
 
-    <main class="container">
-      <section class="hero">
-        <h2>Driving question</h2>
-        <p>
+    <main class="page-main">
+      <section class="intro-bar">
+        <p class="intro-question">
+          <strong>Driving question:</strong>
           How would you instrument this truss so a traffic overload cannot hide the same
           <em>class</em> of joint failure that brought down the I-35W bridge?
         </p>
-        <p class="muted">
-          Read the model notes, write a hypothesis, place sensors, explore the deflected shape as
-          the load moves, then simulate and export evidence for your report.
+        <p class="intro-hint muted">
+          Hypothesize → place sensors → simulate all load cases → critique → export evidence → reflect on AI use.
         </p>
       </section>
 
-      <section class="panel" id="model-notes">
-        <h3>How to read this model</h3>
-        <ul class="caveats-list">
-          <li>
-            <strong>Truss bars carry axial force only.</strong> Members do not bend; they stretch
-            or compress along their length. A <em>Strain Gauge on a beam</em> reports that axial
-            response (microstrain). It is not the bar “bending.”
-          </li>
-          <li>
-            <strong>Displacement sensors measure vertical joint motion.</strong> At a
-            <em>Joint</em>, the reading is node deflection in the deck plane. At a
-            <em>Beam</em>, the reading is the average vertical motion of the two end joints
-            (midpoint proxy)—not elongation along the bar axis.
-          </li>
-          <li>
-            <strong>Accelerometers are quasi-static here.</strong> The solver is static at each
-            load position; “acceleration” comes from how fast that vertical deflection changes as
-            the vehicle crosses at 20 model-units/s. It is not a dynamic impact model.
-          </li>
-          <li>
-            <strong>Units are model units,</strong> not real meters. Compare sensors and load cases
-            relative to each other on this bridge geometry.
-          </li>
-          <li>
-            Use the <strong>deflected-shape explorer</strong> below to see the undeformed truss
-            (gray) versus the exaggerated deflected shape (blue) as the first vehicle moves along
-            the deck.
-          </li>
+      <section class="panel compact-panel" id="pbl-panel">
+        <h2 class="section-title">Project workflow</h2>
+        <div class="workflow-grid">
+          <div class="pbl-steps pbl-steps-compact">
+            <div class="pbl-step">
+              <label class="step-title">
+                <input type="checkbox" data-pbl="investigate" />
+                <span><strong>1. Investigate</strong> — review readings</span>
+              </label>
+              <div class="step-body step-body-inline">
+                <span class="muted">NTSB I-35W · Ballarini gusset plates · Modares SHM</span>
+              </div>
+            </div>
+            <div class="pbl-step">
+              <label class="step-title">
+                <input type="checkbox" data-pbl="hypothesize" />
+                <span><strong>2. Hypothesize</strong> — predict critical joints</span>
+              </label>
+            </div>
+            <div class="pbl-step">
+              <label class="step-title">
+                <input type="checkbox" data-pbl="design" />
+                <span><strong>3. Design</strong> — up to 8 sensors · Budget: <span id="sensor-budget" class="budget">0 / 8</span></span>
+              </label>
+            </div>
+            <div class="pbl-step">
+              <label class="step-title">
+                <input type="checkbox" data-pbl="critique" />
+                <span><strong>4. Critique</strong> — run design critic, revise</span>
+              </label>
+            </div>
+            <div class="pbl-step">
+              <label class="step-title">
+                <input type="checkbox" data-pbl="simulate" />
+                <span><strong>5. Simulate</strong> — all three load cases</span>
+              </label>
+            </div>
+            <div class="pbl-step">
+              <label class="step-title">
+                <input type="checkbox" data-pbl="export" />
+                <span><strong>6. Export</strong> — memo evidence</span>
+              </label>
+            </div>
+            <div class="pbl-step">
+              <label class="step-title">
+                <input type="checkbox" data-pbl="reflect" />
+                <span><strong>7. Reflect</strong> — AI literacy feedback</span>
+              </label>
+            </div>
+          </div>
+          <div class="workflow-hypothesis">
+            <label for="hypothesis-input"><strong>Engineering hypothesis</strong> (2–4 sentences)</label>
+            <p class="helper-text compact">
+              Panel points like gusset plates · peak strain vs motion · governing load case.
+            </p>
+            <textarea
+              id="hypothesis-input"
+              class="compact-textarea"
+              placeholder="Example: Panel points where the bottom chord meets steep diagonals (e.g., near Joint 31) may concentrate axial force like gusset plates..."
+            ></textarea>
+          </div>
+        </div>
+      </section>
+
+      <details class="panel model-details" id="model-notes">
+        <summary class="section-title">How to read this model</summary>
+        <ul class="caveats-list compact">
+          <li><strong>Axial force only.</strong> Strain gauges report microstrain along the bar, not bending.</li>
+          <li><strong>Displacement</strong> = vertical joint motion (joint) or midpoint average (beam).</li>
+          <li><strong>Accelerometers</strong> are quasi-static (deflection rate at 20 model-units/s).</li>
+          <li><strong>Model units</strong>, not real meters — compare cases relatively.</li>
         </ul>
-      </section>
+      </details>
 
-      <section class="panel" id="pbl-panel">
-        <h3>Project workflow</h3>
-        <div class="pbl-steps">
-          <div class="pbl-step">
-            <label class="step-title">
-              <input type="checkbox" data-pbl="investigate" />
-              <span>1. Investigate — review the readings</span>
-            </label>
-            <div class="step-body">
-              <ul class="readings-list">
-                <li>NTSB I-35W collapse report (pp. 1–21)</li>
-                <li>Ballarini &amp; Okazaki — gusset plates</li>
-                <li>Modares &amp; Waksmanski — steel bridge SHM overview</li>
-              </ul>
+      <section class="panel layout-lab" id="lab-panel">
+        <div class="lab-primary">
+          <h2 class="section-title">Bridge diagram — place sensors</h2>
+          <p class="muted compact">Select sensor type (right), then click a joint or beam midpoint.</p>
+          <div id="bridge-chart"></div>
+        </div>
+        <aside class="lab-sidebar">
+          <div class="sidebar-block">
+            <h3 class="subsection-title">Load case</h3>
+            <label for="load-case-select">Scenario</label>
+            <select id="load-case-select"></select>
+            <p id="load-case-desc" class="muted compact"></p>
+            <div id="load-chart"></div>
+          </div>
+          <div class="sidebar-block">
+            <h3 class="subsection-title">Sensor tools</h3>
+            <div id="sensor-radio" class="sensor-options"></div>
+            <div class="btn-row tight">
+              <button type="button" id="clear-sensors-btn" class="danger">Clear sensors</button>
+              <button type="button" id="run-sim-btn" class="primary">Run simulation</button>
             </div>
           </div>
-          <div class="pbl-step">
-            <label class="step-title">
-              <input type="checkbox" data-pbl="hypothesize" />
-              <span>2. Hypothesize — predict critical joints before you instrument</span>
-            </label>
-            <div class="step-body">
-              <label for="hypothesis-input">Engineering hypothesis (2–4 sentences)</label>
-              <p class="helper-text">
-                Address: (1) which panel points or diagonals resemble undersized gusset-plate
-                details from the I-35W readings, (2) where you expect peak <em>axial strain</em>
-                versus <em>vertical motion</em>, and (3) which load case should govern your sensor
-                layout.
-              </p>
-              <textarea
-                id="hypothesis-input"
-                placeholder="Example: Panel points where the bottom chord meets steep diagonals (e.g., near Joint 31) may concentrate axial force like gusset plates. I expect Heavy Traffic Jam to produce the largest strains on upper-deck diagonals, while vertical motion may be largest mid-span. I will prioritize strain gauges on those diagonals and one accelerometer on the deck for comparison."
-              ></textarea>
+          <div class="sidebar-block">
+            <h3 class="subsection-title">Placed sensors</h3>
+            <ul id="placed-sensors" class="placed-list compact-list">
+              <li class="muted">None yet.</li>
+            </ul>
+          </div>
+        </aside>
+      </section>
+
+      <div class="layout-explore">
+        <section class="panel" id="deflection-panel">
+          <h2 class="section-title">Deflected shape explorer</h2>
+          <p class="muted compact">Gray = undeformed · blue = deflected (exaggerated).</p>
+          <div class="slider-row tight">
+            <label for="deflection-step-slider">First-vehicle position</label>
+            <input type="range" id="deflection-step-slider" min="0" max="39" value="0" />
+          </div>
+          <p id="deflection-step-info" class="muted compact"></p>
+          <div class="btn-row tight">
+            <button type="button" id="deflection-worst-btn">Jump to worst deflection</button>
+          </div>
+          <div id="deflection-chart"></div>
+        </section>
+
+        <section class="panel" id="critic-panel">
+          <h2 class="section-title">Design critic &amp; telemetry</h2>
+          <p class="muted compact">
+            Instant in-browser critique — optional <strong>Copy LLM prompt</strong> for ChatGPT/Gemini.
+          </p>
+          <p class="compact">
+            Status: <span id="critic-status" class="status-pill ready">Ready</span>
+          </p>
+          <div class="btn-row tight">
+            <button type="button" id="run-critic-btn" class="primary">Run critique</button>
+            <button type="button" id="copy-prompt-btn">Copy LLM prompt</button>
+          </div>
+          <div id="critic-output" class="hidden"></div>
+          <div id="critique-log-area" class="hidden">
+            <label for="critique-log"><strong>Critique log</strong> — what you kept or changed</label>
+            <textarea id="critique-log" class="compact-textarea" placeholder="Example: Added strain gauge on Beam 34 after critique..."></textarea>
+          </div>
+          <div id="results-area" class="hidden">
+            <h3 class="subsection-title" id="results-title">Sensor telemetry</h3>
+            <div id="telemetry-charts"></div>
+          </div>
+        </section>
+      </div>
+
+      <div class="layout-finish">
+        <section class="panel">
+          <h2 class="section-title">Export report evidence</h2>
+          <div class="btn-row tight">
+            <button type="button" id="export-json-btn">Download JSON</button>
+            <button type="button" id="copy-markdown-btn">Copy markdown summary</button>
+          </div>
+          <pre id="export-preview" class="export-box hidden"></pre>
+        </section>
+
+        <section class="panel" id="feedback-panel">
+          <h2 class="section-title">Final reflection — AI literacy</h2>
+          <p class="muted compact">Included in your exported JSON and markdown.</p>
+
+          <div class="feedback-compact">
+            <div class="feedback-question">
+              <label><strong>GenAI as engineering consultant</strong> (1–5)</label>
+              <div class="rating-group" role="group" aria-label="AI consultant confidence">
+                <label><input type="radio" name="ai-consultant-confidence" value="1" /> 1</label>
+                <label><input type="radio" name="ai-consultant-confidence" value="2" /> 2</label>
+                <label><input type="radio" name="ai-consultant-confidence" value="3" /> 3</label>
+                <label><input type="radio" name="ai-consultant-confidence" value="4" /> 4</label>
+                <label><input type="radio" name="ai-consultant-confidence" value="5" /> 5</label>
+              </div>
+              <p class="rating-scale-hint muted">1 — Not at all confident · 5 — Very confident</p>
+            </div>
+
+            <div class="feedback-question">
+              <label><strong>Verify AI advice before trusting</strong> (1–5)</label>
+              <div class="rating-group" role="group" aria-label="Verify AI advice confidence">
+                <label><input type="radio" name="ai-verify-confidence" value="1" /> 1</label>
+                <label><input type="radio" name="ai-verify-confidence" value="2" /> 2</label>
+                <label><input type="radio" name="ai-verify-confidence" value="3" /> 3</label>
+                <label><input type="radio" name="ai-verify-confidence" value="4" /> 4</label>
+                <label><input type="radio" name="ai-verify-confidence" value="5" /> 5</label>
+              </div>
             </div>
           </div>
-          <div class="pbl-step">
-            <label class="step-title">
-              <input type="checkbox" data-pbl="design" />
-              <span>3. Design — place up to 8 mixed sensors</span>
-            </label>
-            <div class="step-body muted">
-              Use the bridge diagram below. Budget:
-              <span id="sensor-budget" class="budget">0 / 8</span>
+
+          <div class="feedback-open-grid">
+            <div class="feedback-question">
+              <label for="ai-helped-thinking"><strong>Where AI helped your thinking</strong></label>
+              <textarea id="ai-helped-thinking" class="compact-textarea" placeholder="One example from the critic or an external LLM..."></textarea>
+            </div>
+            <div class="feedback-question">
+              <label for="ai-verified-or-disagreed"><strong>Where you verified or disagreed</strong></label>
+              <textarea id="ai-verified-or-disagreed" class="compact-textarea" placeholder="Checked against simulation, readings, or judgment..."></textarea>
+            </div>
+            <div class="feedback-question feedback-full">
+              <label for="ai-still-to-learn"><strong>Still to learn about responsible AI use</strong></label>
+              <textarea id="ai-still-to-learn" class="compact-textarea" placeholder="One thing you want to learn..."></textarea>
             </div>
           </div>
-          <div class="pbl-step">
-            <label class="step-title">
-              <input type="checkbox" data-pbl="critique" />
-              <span>4. Critique — run the design critic, then revise</span>
-            </label>
-            <div class="step-body muted">Record what you kept or changed after the critique.</div>
-          </div>
-          <div class="pbl-step">
-            <label class="step-title">
-              <input type="checkbox" data-pbl="simulate" />
-              <span>5. Simulate — run all three load cases</span>
-            </label>
-            <div class="step-body muted">Iterate at least once after seeing telemetry.</div>
-          </div>
-          <div class="pbl-step">
-            <label class="step-title">
-              <input type="checkbox" data-pbl="export" />
-              <span>6. Export — memo evidence</span>
-            </label>
-            <div class="step-body muted">Download JSON and copy the markdown summary into your report appendix.</div>
-          </div>
-          <div class="pbl-step">
-            <label class="step-title">
-              <input type="checkbox" data-pbl="reflect" />
-              <span>7. Reflect — AI literacy feedback</span>
-            </label>
-            <div class="step-body muted">Complete before submitting your memo evidence.</div>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <h3>Bridge diagram — place sensors</h3>
-        <p class="muted">Select an active sensor type, then click a joint or beam midpoint.</p>
-        <div id="bridge-chart"></div>
-      </section>
-
-      <section class="panel" id="deflection-panel">
-        <h3>Deflected shape explorer</h3>
-        <p class="muted">
-          The moving load advances the <strong>first vehicle</strong> along the deck. Drag the
-          slider to see vertical deflections at each stop. Gray = undeformed; blue = deflected
-          (exaggerated for visibility).
-        </p>
-        <div class="slider-row">
-          <label for="deflection-step-slider">First-vehicle position</label>
-          <input type="range" id="deflection-step-slider" min="0" max="39" value="0" />
-        </div>
-        <p id="deflection-step-info" class="muted"></p>
-        <div class="btn-row">
-          <button type="button" id="deflection-worst-btn">Jump to worst global deflection</button>
-        </div>
-        <div id="deflection-chart"></div>
-      </section>
-
-      <section class="panel grid-3">
-        <div>
-          <h3>Load case</h3>
-          <label for="load-case-select">Scenario</label>
-          <select id="load-case-select"></select>
-          <p id="load-case-desc" class="muted"></p>
-          <div id="load-chart"></div>
-        </div>
-        <div>
-          <h3>Sensor tools</h3>
-          <div id="sensor-radio" class="sensor-options"></div>
-          <div class="btn-row">
-            <button type="button" id="clear-sensors-btn" class="danger">Clear all sensors</button>
-          </div>
-        </div>
-        <div>
-          <h3>Placed sensors</h3>
-          <ul id="placed-sensors" class="placed-list">
-            <li class="muted">None yet.</li>
-          </ul>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="btn-row">
-          <button type="button" id="run-sim-btn" class="primary">Run moving load simulation</button>
-        </div>
-        <div id="results-area" class="hidden">
-          <h3 id="results-title">Sensor telemetry</h3>
-          <div id="telemetry-charts"></div>
-        </div>
-      </section>
-
-      <section class="panel" id="critic-panel">
-        <h3>Design critic</h3>
-        <p class="muted">
-          Runs instantly in your browser — no download and no API key. It asks Socratic questions
-          grounded in your telemetry and the I-35W readings. For an optional second opinion, copy
-          the LLM prompt into ChatGPT or Gemini.
-        </p>
-        <p>
-          Status: <span id="critic-status" class="status-pill ready">Ready</span>
-        </p>
-        <div class="btn-row">
-          <button type="button" id="run-critic-btn" class="primary">Run critique</button>
-          <button type="button" id="copy-prompt-btn">Copy LLM prompt</button>
-        </div>
-        <div id="critic-output" class="hidden"></div>
-        <div id="critique-log-area" class="hidden">
-          <label for="critique-log">What did you keep or change after the critique?</label>
-          <textarea
-            id="critique-log"
-            placeholder="Example: Added a strain gauge on Beam 34 after the critique noted I had no local axial monitoring near a panel point..."
-          ></textarea>
-        </div>
-      </section>
-
-      <section class="panel">
-        <h3>Export report evidence</h3>
-        <div class="btn-row">
-          <button type="button" id="export-json-btn">Download JSON</button>
-          <button type="button" id="copy-markdown-btn">Copy markdown summary</button>
-        </div>
-        <pre id="export-preview" class="export-box hidden"></pre>
-      </section>
-
-      <section class="panel" id="feedback-panel">
-        <h3>Final reflection — AI literacy</h3>
-        <p class="muted">
-          After completing the full assignment, share brief feedback on how you used and evaluated
-          AI tools. Your responses are included when you export memo evidence.
-        </p>
-
-        <div class="feedback-question">
-          <label>
-            After completing this lab, how confident are you using generative AI (e.g., ChatGPT,
-            Gemini) as an engineering consultant for sensor-design decisions?
-          </label>
-          <div class="rating-group" role="group" aria-label="AI consultant confidence">
-            <label><input type="radio" name="ai-consultant-confidence" value="1" /> 1</label>
-            <label><input type="radio" name="ai-consultant-confidence" value="2" /> 2</label>
-            <label><input type="radio" name="ai-consultant-confidence" value="3" /> 3</label>
-            <label><input type="radio" name="ai-consultant-confidence" value="4" /> 4</label>
-            <label><input type="radio" name="ai-consultant-confidence" value="5" /> 5</label>
-          </div>
-          <p class="rating-scale-hint muted">1 — Not at all confident · 5 — Very confident</p>
-        </div>
-
-        <div class="feedback-question">
-          <label>
-            How confident are you in your ability to critique and verify AI-generated engineering
-            advice before trusting it in a design decision?
-          </label>
-          <div class="rating-group" role="group" aria-label="Verify AI advice confidence">
-            <label><input type="radio" name="ai-verify-confidence" value="1" /> 1</label>
-            <label><input type="radio" name="ai-verify-confidence" value="2" /> 2</label>
-            <label><input type="radio" name="ai-verify-confidence" value="3" /> 3</label>
-            <label><input type="radio" name="ai-verify-confidence" value="4" /> 4</label>
-            <label><input type="radio" name="ai-verify-confidence" value="5" /> 5</label>
-          </div>
-          <p class="rating-scale-hint muted">1 — Not at all confident · 5 — Very confident</p>
-        </div>
-
-        <div class="feedback-question">
-          <label for="ai-helped-thinking">
-            Describe one way the in-browser design critic or an external LLM helped your thinking in
-            this assignment.
-          </label>
-          <textarea
-            id="ai-helped-thinking"
-            placeholder="Example: The critic asked whether I had strain coverage near a bottom-chord panel point, which made me add a gauge on Beam 34..."
-          ></textarea>
-        </div>
-
-        <div class="feedback-question">
-          <label for="ai-verified-or-disagreed">
-            Describe one case where you checked an AI suggestion against simulation data, the
-            readings, or your own engineering judgment—and what you concluded.
-          </label>
-          <textarea
-            id="ai-verified-or-disagreed"
-            placeholder="Example: The LLM suggested an accelerometer on the mid-span deck, but telemetry showed larger axial strain on a diagonal, so I kept the strain gauge..."
-          ></textarea>
-        </div>
-
-        <div class="feedback-question">
-          <label for="ai-still-to-learn">
-            What is one thing you still want to learn about using AI responsibly in structural/civil
-            engineering work?
-          </label>
-          <textarea
-            id="ai-still-to-learn"
-            placeholder="Example: How to document which parts of a design memo came from AI-assisted drafting versus my own analysis..."
-          ></textarea>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
 
-    <script type="module" src="simulator.js?v=20260823"></script>
-    <script type="module" src="critic.js?v=20260823"></script>
+    <script type="module" src="simulator.js?v=20260824"></script>
+    <script type="module" src="critic.js?v=20260824"></script>
   </body>
 </html>

@@ -296,7 +296,7 @@ function drawBridge() {
     yaxis: { visible: false, scaleanchor: "x", scaleratio: 1 },
     margin: { l: 20, r: 20, t: 20, b: 20 },
     dragmode: false,
-    height: 420,
+    height: 300,
   };
 
   return Plotly.react("bridge-chart", buildBridgeTraces(), layout, { responsive: true });
@@ -451,7 +451,7 @@ function drawDeflectedShape(stepIndex = state.deflectionStep) {
       yaxis: { visible: false, scaleanchor: "x", scaleratio: 1 },
       margin: { l: 20, r: 20, t: 20, b: 20 },
       dragmode: false,
-      height: 420,
+      height: 300,
       showlegend: true,
       legend: { orientation: "h", y: -0.05 },
       shapes: [
@@ -639,7 +639,7 @@ function renderTelemetryCharts(simResults) {
         xaxis: { title: "Vehicle position along bridge (model x)" },
         yaxis: { title: units[sensorType] },
         hovermode: "x unified",
-        height: 320,
+        height: 260,
         margin: { l: 60, r: 20, t: 20, b: 50 },
       },
       { responsive: true },
