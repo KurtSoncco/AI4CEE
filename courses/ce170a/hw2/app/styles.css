@@ -26,10 +26,10 @@ body {
 }
 
 .page-main {
-  width: min(100%, 100%);
-  max-width: none;
+  width: min(1600px, 94%);
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 0 clamp(0.75rem, 2vw, 1.5rem);
+  padding: 0 0 2rem;
 }
 
 .site-header {
@@ -38,6 +38,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 20;
+  padding: 0 clamp(0.5rem, 1.5vw, 0.75rem);
 }
 
 .header-inner {
@@ -106,7 +107,7 @@ h1 {
 }
 
 .intro-bar {
-  padding: 0.85rem 0 0.5rem;
+  padding: 1.25rem 0 0.75rem;
 }
 
 .intro-question {
@@ -125,9 +126,9 @@ h1 {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 0.85rem 1rem;
+  padding: 1rem 1.15rem;
   box-shadow: var(--shadow);
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .compact-panel {
@@ -249,8 +250,8 @@ h1 {
 .layout-finish {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .layout-explore .panel,
