@@ -28,7 +28,9 @@ function getLabState() {
 document.getElementById("run-critic-btn").addEventListener("click", () => {
   const lab = getLabState();
   if (!Object.keys(lab.sensors).length) {
-    alert("Place sensors and run at least one simulation before requesting a critique.");
+    alert(
+      "Place sensors on the truss and run at least one moving-load simulation before requesting a design critique.",
+    );
     return;
   }
 
@@ -53,7 +55,9 @@ document.getElementById("copy-prompt-btn").addEventListener("click", async () =>
     allLoadTelemetry: lab.allLoadTelemetry,
   });
   await navigator.clipboard.writeText(prompt);
-  alert("Prompt copied. Paste into ChatGPT or Gemini for an optional second opinion.");
+  alert(
+    "The structured prompt has been copied. Paste it into ChatGPT or Gemini if you want an optional second opinion.",
+  );
 });
 
 window.addEventListener("shm:telemetry-updated", () => {

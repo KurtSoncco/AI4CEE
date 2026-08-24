@@ -176,7 +176,7 @@ function renderPlacedSensors() {
   const entries = Object.entries(state.sensors);
 
   if (!entries.length) {
-    list.innerHTML = '<li class="muted">None yet.</li>';
+    list.innerHTML = '<li class="muted">No sensors have been placed yet.</li>';
     updateBudget();
     return;
   }
@@ -424,12 +424,15 @@ function updateDeflectionStepInfo(stepIndex) {
   const globalMax = globalMaxAbsUy(sim);
   const worstStep = findWorstDeflectionStep(sim);
   const isWorst = stepIndex === worstStep;
+  const worstNote = isWorst
+    ? " This load step corresponds to the maximum vertical deflection in the dataset."
+    : "";
   document.getElementById("deflection-step-info").textContent =
-    `Step ${stepIndex + 1}/${sim.x_positions.length} · first vehicle at x=${x.toFixed(1)} · ` +
-    `max |vertical deflection|=${stepMax.toFixed(3)} model units` +
-    ` · shown at ×${state.deflectionExaggeration.toFixed(1)} exaggeration` +
-    (isWorst ? " · worst global deflection at this step" : "") +
-    ` · dataset peak=${globalMax.toFixed(3)} model units`;
+    `Load step ${stepIndex + 1} of ${sim.x_positions.length}. ` +
+    `The leading vehicle is at x = ${x.toFixed(1)} model units. ` +
+    `The maximum absolute vertical deflection at this step is ${stepMax.toFixed(3)} model units` +
+    `, displayed at ${state.deflectionExaggeration.toFixed(1)}× vertical exaggeration.${worstNote} ` +
+    `The peak vertical deflection across all load steps is ${globalMax.toFixed(3)} model units.`;
 }
 
 function drawDeflectedShape(stepIndex = state.deflectionStep) {
@@ -602,7 +605,7 @@ function renderTelemetryCharts(simResults) {
   const x = sim.x_positions;
   const units = {
     Displacement: "Vertical deflection (model units)",
-    "Strain Gauge": "Strain (microstrain)",
+    "Strain Gauge": "Axial strain (microstrain)",
     Accelerometer: "Vertical acceleration (model units/s², quasi-static)",
   };
 
@@ -626,7 +629,7 @@ function renderTelemetryCharts(simResults) {
     const block = document.createElement("div");
     block.className = "chart-block";
     const title = document.createElement("h4");
-    title.textContent = `${sensorType} sensors`;
+    title.textContent = `${sensorType} response`;
     const chart = document.createElement("div");
     chart.className = "telemetry-chart";
     block.append(title, chart);
@@ -636,7 +639,7 @@ function renderTelemetryCharts(simResults) {
       chart,
       traces,
       {
-        xaxis: { title: "Vehicle position along bridge (model x)" },
+        xaxis: { title: "Longitudinal position of the leading vehicle (model x)" },
         yaxis: { title: units[sensorType] },
         hovermode: "x unified",
         height: 260,
@@ -649,7 +652,7 @@ function renderTelemetryCharts(simResults) {
 
 function runSimulation() {
   if (!Object.keys(state.sensors).length) {
-    alert("Place at least one sensor before running the simulation.");
+    alert("Place at least one sensor on the truss before running the moving-load simulation.");
     return;
   }
 
@@ -666,7 +669,8 @@ function runSimulation() {
   state.simulatedLoadCases.add(state.loadCase);
 
   document.getElementById("results-area").classList.remove("hidden");
-  document.getElementById("results-title").textContent = `Sensor telemetry — ${state.loadCase}`;
+  document.getElementById("results-title").textContent =
+    `Sensor telemetry for load case: ${state.loadCase}`;
   renderTelemetryCharts(simResults);
 
   window.dispatchEvent(
@@ -756,7 +760,7 @@ function buildMarkdownSummary() {
     })
     .join("\n");
 
-  return `# CE170A HW2 SHM evidence\n\n## Hypothesis\n${payload.hypothesis || "(not provided)"}\n\n## Sensor layout (${Object.keys(payload.sensors).length}/${payload.sensor_budget})\n${sensorLines || "(none)"}\n\n## Telemetry peaks\n${peakLines || "(run simulations first)"}\n\n## Critique log\n${payload.critique_log || "(not provided)"}\n\n## AI literacy feedback\n- Consultant confidence: ${formatRating(payload.ai_literacy_feedback.ai_consultant_confidence)}\n- Verify-before-trust confidence: ${formatRating(payload.ai_literacy_feedback.ai_verify_confidence)}\n\n### Where AI helped\n${payload.ai_literacy_feedback.ai_helped_thinking || "(not provided)"}\n\n### Where I verified or disagreed\n${payload.ai_literacy_feedback.ai_verified_or_disagreed || "(not provided)"}\n\n### Still to learn\n${payload.ai_literacy_feedback.ai_still_to_learn || "(not provided)"}\n`;
+  return `# CE170A HW2 SHM evidence\n\n## Hypothesis\n${payload.hypothesis || "(not provided)"}\n\n## Sensor layout (${Object.keys(payload.sensors).length}/${payload.sensor_budget})\n${sensorLines || "(none)"}\n\n## Telemetry peaks\n${peakLines || "(run all load-case simulations first)"}\n\n## Critique log\n${payload.critique_log || "(not provided)"}\n\n## AI literacy feedback\n- Consultant confidence: ${formatRating(payload.ai_literacy_feedback.ai_consultant_confidence)}\n- Verify-before-trust confidence: ${formatRating(payload.ai_literacy_feedback.ai_verify_confidence)}\n\n### Where AI supported reasoning\n${payload.ai_literacy_feedback.ai_helped_thinking || "(not provided)"}\n\n### Where the student verified or disagreed\n${payload.ai_literacy_feedback.ai_verified_or_disagreed || "(not provided)"}\n\n### Remaining learning goals\n${payload.ai_literacy_feedback.ai_still_to_learn || "(not provided)"}\n`;
 }
 
 function formatRating(value) {
@@ -820,7 +824,7 @@ function setupControls() {
     document.getElementById("export-preview").textContent = md;
     document.getElementById("export-preview").classList.remove("hidden");
     document.querySelector('[data-pbl="export"]').checked = true;
-    alert("Markdown summary copied to clipboard.");
+    alert("The markdown summary has been copied to your clipboard.");
   });
 
   setupFeedbackControls();
@@ -838,7 +842,9 @@ function bindBridgeClickHandler() {
 
     const budget = state.data.sensor_budget ?? 8;
     if (!state.sensors[target] && Object.keys(state.sensors).length >= budget) {
-      alert(`Sensor budget is ${budget}. Remove a sensor or revise your design.`);
+      alert(
+        `The sensor budget is ${budget}. Remove an existing sensor or revise your design before placing another instrument.`,
+      );
       return;
     }
 
@@ -882,7 +888,7 @@ function showStartupError(err) {
   console.error(err);
   const detail = err?.message ? `\n\nDetails: ${err.message}` : "";
   alert(
-    "Failed to start the simulator. Use the GitHub Pages link or run a local server:\n" +
+    "Failed to start the simulator. Open the lab through GitHub Pages or a local HTTP server:\n" +
       "python3 -m http.server 8765\n" +
       "https://kurtsoncco.github.io/AI4CEE/courses/ce170a/hw2/app/" +
       detail,
